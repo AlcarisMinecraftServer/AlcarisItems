@@ -15,7 +15,7 @@ public class ApiClientManager {
     }
 
     public String fetchItemData() throws IOException {
-        HttpURLConnection connection = null;
+        HttpURLConnection connection;
         URL url = new URL(apiUrl + "/items");
         connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
