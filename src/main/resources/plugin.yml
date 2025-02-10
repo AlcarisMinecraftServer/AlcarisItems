@@ -2,3 +2,8 @@ name: AlcarisItems
 version: '1.0.0'
 main: moe.nmkmn.alcaris_items.AlcarisItems
 api-version: '1.21'
+
+commands:
+  custom-item:
+    description: カスタムアイテムを取得するコマンド
+    usage: /custom-item give <id> [amount]
