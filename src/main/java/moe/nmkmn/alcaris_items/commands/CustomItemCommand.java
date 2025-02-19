@@ -4,10 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import moe.nmkmn.alcaris_items.AlcarisItems;
 import moe.nmkmn.alcaris_items.converters.FoodItemConverter;
+import moe.nmkmn.alcaris_items.converters.MaterialItemConverter;
 import moe.nmkmn.alcaris_items.converters.ToolItemConverter;
 import moe.nmkmn.alcaris_items.models.ItemModel;
 import moe.nmkmn.alcaris_items.models.data.FoodDataModel;
 import moe.nmkmn.alcaris_items.models.data.ToolDataModel;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -25,28 +27,48 @@ public class CustomItemCommand implements CommandExecutor {
     private final AlcarisItems plugin;
     private final FoodItemConverter foodItemConverter;
     private final ToolItemConverter toolItemConverter;
+    private final MaterialItemConverter materialItemConverter;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    public CustomItemCommand(AlcarisItems plugin, FoodItemConverter foodItemConverter, ToolItemConverter toolItemConverter) {
+    public CustomItemCommand(
+            AlcarisItems plugin,
+            FoodItemConverter foodItemConverter,
+            ToolItemConverter toolItemConverter,
+            MaterialItemConverter materialItemConverter
+    ) {
         this.plugin = plugin;
         this.foodItemConverter = foodItemConverter;
         this.toolItemConverter = toolItemConverter;
+        this.materialItemConverter = materialItemConverter;
     }
 
     @Override
     @Deprecated(forRemoval = true)
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
-        if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "使用法: /custom-item give <id> [amount]");
+        if (args.length < 3) {
+            sender.sendMessage(ChatColor.RED + "使用法: /custom-item give <player> <id> [amount]");
             return true;
         }
 
         if (!args[0].equalsIgnoreCase("give")) {
-            sender.sendMessage(ChatColor.RED + "不正なサブコマンドです。使用法: /custom-item give <id> [amount]");
+            sender.sendMessage(ChatColor.RED + "不正なサブコマンドです。使用法: /custom-item give <player> <id> [amount]");
             return true;
         }
 
-        String itemId = args[1];
+        Player targetPlayer = null;
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            if (onlinePlayer.getName().equals(args[1])) {
+                targetPlayer = onlinePlayer;
+                break;
+            }
+        }
+
+        if (targetPlayer == null) {
+            sender.sendMessage(ChatColor.RED + "プレイヤーが存在しません。");
+            return true;
+        }
+
+        String itemId = args[2];
         File cacheFile = new File(plugin.getDataFolder(), "caches" + File.separator + itemId + ".json");
 
         if (!cacheFile.exists()) {
@@ -63,9 +85,9 @@ public class CustomItemCommand implements CommandExecutor {
             }
 
             int amount = 1;
-            if (args.length >= 3) {
+            if (args.length >= 4) {
                 try {
-                    amount = Integer.parseInt(args[2]);
+                    amount = Integer.parseInt(args[3]);
                 } catch (NumberFormatException e) {
                     sender.sendMessage(ChatColor.YELLOW + "無効な個数が指定されました。1 個を付与します。");
                 }
@@ -74,10 +96,12 @@ public class CustomItemCommand implements CommandExecutor {
             ItemStack customItem = null;
             if ("food".equals(itemData.getCategory())) {
                 FoodDataModel foodData = gson.fromJson(gson.toJson(itemData.getData()), FoodDataModel.class);
-                customItem = foodItemConverter.createFoodItem(itemData, foodData, amount);
+                customItem = foodItemConverter.createItem(itemData, foodData, amount);
             } else if ("tool".equals(itemData.getCategory())) {
                 ToolDataModel toolData = gson.fromJson(gson.toJson(itemData.getData()), ToolDataModel.class);
-                customItem = toolItemConverter.createToolItem(itemData, toolData, amount);
+                customItem = toolItemConverter.createItem(itemData, toolData, amount);
+            } else if ("material".equals(itemData.getCategory())) {
+                customItem = materialItemConverter.createItem(itemData, amount);
             }
 
             if (customItem == null) {
@@ -85,11 +109,7 @@ public class CustomItemCommand implements CommandExecutor {
                 return true;
             }
 
-            if (!(sender instanceof Player player)) {
-                sender.sendMessage(ChatColor.RED + "このコマンドはプレイヤーのみ実行可能です。");
-                return true;
-            }
-            player.getInventory().addItem(customItem);
+            targetPlayer.getInventory().addItem(customItem);
             sender.sendMessage(ChatColor.GREEN + "アイテムを受け取りました: " + itemId);
         } catch (IOException e) {
             sender.sendMessage(ChatColor.RED + "アイテムの読み込み中にエラーが発生しました: " + e.getMessage());

@@ -3,8 +3,8 @@ package moe.nmkmn.alcaris_items.converters;
 import moe.nmkmn.alcaris_items.AlcarisItems;
 import moe.nmkmn.alcaris_items.models.data.FoodDataModel;
 import moe.nmkmn.alcaris_items.models.ItemModel;
-import moe.nmkmn.alcaris_items.utils.Colors;
-import moe.nmkmn.alcaris_items.utils.TextureIcons;
+import moe.nmkmn.alcaris_items.enums.Colors;
+import moe.nmkmn.alcaris_items.enums.TextureIcons;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -28,7 +28,7 @@ public class FoodItemConverter {
     }
 
     @SuppressWarnings("all")
-    public ItemStack createFoodItem(ItemModel item, FoodDataModel food, int amount) {
+    public ItemStack createItem(ItemModel item, FoodDataModel food, int amount) {
         ItemStack itemStack = new ItemStack(Material.TROPICAL_FISH, amount);
         ItemMeta itemMeta = itemStack.getItemMeta();
 

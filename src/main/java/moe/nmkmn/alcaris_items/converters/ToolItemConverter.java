@@ -3,8 +3,8 @@ package moe.nmkmn.alcaris_items.converters;
 import moe.nmkmn.alcaris_items.AlcarisItems;
 import moe.nmkmn.alcaris_items.models.ItemModel;
 import moe.nmkmn.alcaris_items.models.data.ToolDataModel;
-import moe.nmkmn.alcaris_items.utils.Colors;
-import moe.nmkmn.alcaris_items.utils.TextureIcons;
+import moe.nmkmn.alcaris_items.enums.Colors;
+import moe.nmkmn.alcaris_items.enums.TextureIcons;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -28,7 +28,7 @@ public class ToolItemConverter {
     }
 
     @SuppressWarnings("all")
-    public ItemStack createToolItem(ItemModel item, ToolDataModel tool, int amount) {
+    public ItemStack createItem(ItemModel item, ToolDataModel tool, int amount) {
         ItemStack itemStack = new ItemStack(Material.WOODEN_PICKAXE, amount);
         Damageable itemMeta = (Damageable) itemStack.getItemMeta();
 

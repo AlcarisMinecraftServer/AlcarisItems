@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import moe.nmkmn.alcaris_items.AlcarisItems;
 import moe.nmkmn.alcaris_items.converters.FoodItemConverter;
+import moe.nmkmn.alcaris_items.converters.MaterialItemConverter;
 import moe.nmkmn.alcaris_items.converters.ToolItemConverter;
 import moe.nmkmn.alcaris_items.models.ItemModel;
 import moe.nmkmn.alcaris_items.models.data.FoodDataModel;
@@ -26,14 +27,21 @@ public class InventoryUpdater {
     private final AlcarisItems plugin;
     private final FoodItemConverter foodConverter;
     private final ToolItemConverter toolConverter;
+    private final MaterialItemConverter materialConverter;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final NamespacedKey keyId;
     private final NamespacedKey keyVersion;
 
-    public InventoryUpdater(AlcarisItems plugin, FoodItemConverter foodConverter, ToolItemConverter toolConverter) {
+    public InventoryUpdater(
+            AlcarisItems plugin,
+            FoodItemConverter foodConverter,
+            ToolItemConverter toolConverter,
+            MaterialItemConverter materialConverter
+    ) {
         this.plugin = plugin;
         this.foodConverter = foodConverter;
         this.toolConverter = toolConverter;
+        this.materialConverter = materialConverter;
         this.keyId = new NamespacedKey(plugin, "item_id");
         this.keyVersion = new NamespacedKey(plugin, "item_version");
     }
@@ -66,10 +74,12 @@ public class InventoryUpdater {
                     ItemStack newItem = null;
                     if ("food".equals(model.getCategory())) {
                         FoodDataModel foodData = gson.fromJson(gson.toJson(model.getData()), FoodDataModel.class);
-                        newItem = foodConverter.createFoodItem(model, foodData, item.getAmount());
+                        newItem = foodConverter.createItem(model, foodData, item.getAmount());
                     } else if ("tool".equals(model.getCategory())) {
                         ToolDataModel toolData = gson.fromJson(gson.toJson(model.getData()), ToolDataModel.class);
                         newItem = updateToolItem(model, toolData, item);
+                    } else if ("material".equals(model.getCategory())) {
+                        newItem = materialConverter.createItem(model, item.getAmount());
                     }
 
                     if (newItem != null) {
@@ -84,7 +94,7 @@ public class InventoryUpdater {
     }
 
     private ItemStack updateToolItem(ItemModel model, ToolDataModel toolData, ItemStack oldItem) {
-        ItemStack newItem = toolConverter.createToolItem(model, toolData, oldItem.getAmount());
+        ItemStack newItem = toolConverter.createItem(model, toolData, oldItem.getAmount());
 
         if (newItem.getItemMeta() instanceof Damageable newMeta && oldItem.getItemMeta() instanceof Damageable oldMeta) {
             newMeta.setDamage(oldMeta.getDamage());

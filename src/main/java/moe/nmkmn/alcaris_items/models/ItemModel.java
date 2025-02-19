@@ -11,6 +11,7 @@ public class ItemModel {
     private int rarity;
     private int max_stack;
     private int custom_model_data;
+    private Price price;
     private Object data;
 
     public String getId() {
@@ -47,5 +48,23 @@ public class ItemModel {
 
     public Object getData() {
         return data;
+    }
+
+    public static class Price {
+        private int buy;
+        private int sell;
+        private boolean can_sell;
+
+        public int getBuy() {
+            return buy;
+        }
+
+        public int getSell() {
+            return sell;
+        }
+
+        public boolean isCan_sell() {
+            return can_sell;
+        }
     }
 }
