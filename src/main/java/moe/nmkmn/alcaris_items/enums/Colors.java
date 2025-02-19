@@ -1,4 +1,4 @@
-package moe.nmkmn.alcaris_items.utils;
+package moe.nmkmn.alcaris_items.enums;
 
 public enum Colors {
     RARITY_1("#CCCCCC"),
