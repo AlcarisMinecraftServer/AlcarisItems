@@ -2,6 +2,7 @@ package moe.nmkmn.alcaris_items;
 
 import moe.nmkmn.alcaris_items.commands.CustomItemCommand;
 import moe.nmkmn.alcaris_items.converters.FoodItemConverter;
+import moe.nmkmn.alcaris_items.converters.MaterialItemConverter;
 import moe.nmkmn.alcaris_items.converters.ToolItemConverter;
 import moe.nmkmn.alcaris_items.listeners.InventoryUpdateListener;
 import moe.nmkmn.alcaris_items.utils.ApiClientManager;
@@ -19,13 +20,25 @@ public final class AlcarisItems extends JavaPlugin {
     public final MiniMessage miniMessage = MiniMessage.miniMessage();
     public Component prefix = miniMessage.deserialize("[<gradient:#8a80ff:#9400d9>AlcarisItems</gradient>] ");
 
-    public final String API_URL = "http://localhost:8080/v2";
+    public String API_URL;
+    public String API_KEY;
     private boolean isUsingCacheFallback = false;
 
     @Override
     public void onEnable() {
+        saveDefaultConfig();
+
+        API_URL = getConfig().getString("apiUrl");
+        API_KEY = getConfig().getString("apiKey");
+
+        if (API_URL == null || API_KEY == null) {
+            getLogger().severe("API URL and API KEY are missing.");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+
         CacheManager cacheManager = new CacheManager(this);
-        ApiClientManager apiClient = new ApiClientManager(API_URL);
+        ApiClientManager apiClient = new ApiClientManager(API_URL, API_KEY);
 
         getLogger().info("アイテムデータを取得中...");
         String response = null;
@@ -50,7 +63,8 @@ public final class AlcarisItems extends JavaPlugin {
 
         FoodItemConverter foodItemConverter = new FoodItemConverter(this);
         ToolItemConverter toolItemConverter = new ToolItemConverter(this);
-        InventoryUpdater inventoryUpdater = new InventoryUpdater(this, foodItemConverter, toolItemConverter);
+        MaterialItemConverter materialItemConverter = new MaterialItemConverter(this);
+        InventoryUpdater inventoryUpdater = new InventoryUpdater(this, foodItemConverter, toolItemConverter, materialItemConverter);
 
         // Listener
         getServer().getPluginManager().registerEvents(new AdminAlertListener(this, isUsingCacheFallback), this);
@@ -60,7 +74,14 @@ public final class AlcarisItems extends JavaPlugin {
         getServer().getScheduler().runTaskTimer(this, inventoryUpdater::updateAllPlayersItems, 0L, 1200L);
 
         // Commands
-        Objects.requireNonNull(this.getCommand("custom-item")).setExecutor(new CustomItemCommand(this, foodItemConverter, toolItemConverter));
+        Objects.requireNonNull(this.getCommand("custom-item")).setExecutor(
+                new CustomItemCommand(
+                        this,
+                        foodItemConverter,
+                        toolItemConverter,
+                        materialItemConverter
+                )
+        );
     }
 
     @Override
