@@ -4,7 +4,6 @@ import moe.nmkmn.alcaris_items.AlcarisItems;
 import moe.nmkmn.alcaris_items.enums.Colors;
 import moe.nmkmn.alcaris_items.enums.TextureIcons;
 import moe.nmkmn.alcaris_items.models.ItemModel;
-import moe.nmkmn.alcaris_items.models.data.FoodDataModel;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
