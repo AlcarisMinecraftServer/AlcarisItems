@@ -11,9 +11,7 @@ import moe.nmkmn.alcaris_items.models.data.FoodDataModel;
 import moe.nmkmn.alcaris_items.models.data.ToolDataModel;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -21,9 +19,14 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
-public class CustomItemCommand implements CommandExecutor {
+public class CustomItemCommand implements CommandExecutor, TabCompleter {
     private final AlcarisItems plugin;
     private final FoodItemConverter foodItemConverter;
     private final ToolItemConverter toolItemConverter;
@@ -40,6 +43,50 @@ public class CustomItemCommand implements CommandExecutor {
         this.foodItemConverter = foodItemConverter;
         this.toolItemConverter = toolItemConverter;
         this.materialItemConverter = materialItemConverter;
+    }
+
+    @Override
+    @Deprecated(forRemoval = true)
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
+        final List<String> completions = new ArrayList<>();
+        final String input = args[args.length - 1].toLowerCase();
+
+        switch (args.length) {
+            case 1 -> {
+                List<String> options = List.of("give");
+                options.stream()
+                        .filter(option -> option.toLowerCase().startsWith(input))
+                        .forEach(completions::add);
+            }
+            case 2 -> {
+                if (args[0].equals("give")) {
+                    Bukkit.getOnlinePlayers().stream()
+                            .map(Player::getName)
+                            .filter(name -> name.toLowerCase().startsWith(input))
+                            .forEach(completions::add);
+                }
+            }
+            case 3 -> {
+                if (args[0].equals("give")) {
+                    Path caches = plugin.getDataFolder().toPath().resolve("caches");
+
+                    try (Stream<Path> stream = Files.list(caches)) {
+                        stream.map(path -> path.getFileName().toString().replace(".json", ""))
+                                .filter(name -> name.toLowerCase().startsWith(input))
+                                .forEach(completions::add);
+                    } catch (IOException e) {
+                        plugin.getLogger().severe(e.getMessage());
+                    }
+                }
+            }
+            case 4 -> {
+                if (args[0].equals("give")) {
+                    completions.add("<amount>");
+                }
+            }
+        }
+
+        return completions;
     }
 
     @Override
@@ -93,16 +140,7 @@ public class CustomItemCommand implements CommandExecutor {
                 }
             }
 
-            ItemStack customItem = null;
-            if ("food".equals(itemData.getCategory())) {
-                FoodDataModel foodData = gson.fromJson(gson.toJson(itemData.getData()), FoodDataModel.class);
-                customItem = foodItemConverter.createItem(itemData, foodData, amount);
-            } else if ("tool".equals(itemData.getCategory())) {
-                ToolDataModel toolData = gson.fromJson(gson.toJson(itemData.getData()), ToolDataModel.class);
-                customItem = toolItemConverter.createItem(itemData, toolData, amount);
-            } else if ("material".equals(itemData.getCategory())) {
-                customItem = materialItemConverter.createItem(itemData, amount);
-            }
+            ItemStack customItem = ItemConverter(itemData, amount);
 
             if (customItem == null) {
                 sender.sendMessage(ChatColor.RED + "アイテムの生成に失敗しました: " + itemId);
@@ -117,5 +155,25 @@ public class CustomItemCommand implements CommandExecutor {
         }
 
         return true;
+    }
+
+    private ItemStack ItemConverter(ItemModel item, int amount) {
+        ItemStack result = null;
+
+        switch (item.getCategory()) {
+            case "food" -> {
+                FoodDataModel foodData = gson.fromJson(gson.toJson(item.getData()), FoodDataModel.class);
+                result = foodItemConverter.createItem(item, foodData, amount);
+            }
+            case "tool" -> {
+                ToolDataModel toolData = gson.fromJson(gson.toJson(item.getData()), ToolDataModel.class);
+                result = toolItemConverter.createItem(item, toolData, amount);
+            }
+            case "material" -> {
+                result = materialItemConverter.createItem(item, amount);
+            }
+        }
+
+        return result;
     }
 }
