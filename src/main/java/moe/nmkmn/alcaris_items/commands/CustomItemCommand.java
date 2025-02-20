@@ -169,9 +169,7 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
                 ToolDataModel toolData = gson.fromJson(gson.toJson(item.getData()), ToolDataModel.class);
                 result = toolItemConverter.createItem(item, toolData, amount);
             }
-            case "material" -> {
-                result = materialItemConverter.createItem(item, amount);
-            }
+            case "material" -> result = materialItemConverter.createItem(item, amount);
         }
 
         return result;
