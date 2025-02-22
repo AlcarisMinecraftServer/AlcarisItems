@@ -27,9 +27,30 @@ public class ToolItemConverter {
         this.plugin = plugin;
     }
 
+    private Material getToolMaterial(String itemId) {
+        String toolId = itemId.substring(itemId.lastIndexOf("_"));
+
+        switch (toolId) {
+            case "_pickaxe" -> {
+                return Material.WOODEN_PICKAXE;
+            }
+            case "_axe" -> {
+                return Material.WOODEN_AXE;
+            }
+            case "_shovel" -> {
+                return Material.WOODEN_SHOVEL;
+            }
+            case "_hoe" -> {
+                return Material.WOODEN_HOE;
+            }
+        }
+
+        return Material.STONE;
+    }
+
     @SuppressWarnings("all")
     public ItemStack createItem(ItemModel item, ToolDataModel tool, int amount) {
-        ItemStack itemStack = new ItemStack(Material.WOODEN_PICKAXE, amount);
+        ItemStack itemStack = new ItemStack(getToolMaterial(item.getId()), amount);
         Damageable itemMeta = (Damageable) itemStack.getItemMeta();
 
         if (itemMeta != null) {
