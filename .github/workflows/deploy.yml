@@ -41,6 +41,9 @@ jobs:
             echo "BUILD_VERSION=${VERSION}" >> $GITHUB_ENV
           fi
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
       - name: Build with Gradle
         run: ./gradlew build
 
