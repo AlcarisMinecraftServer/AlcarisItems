@@ -33,6 +33,7 @@ public final class AlcarisItems extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        repository = new ItemsRepository();
 
         saveDefaultConfig();
 

@@ -8,8 +8,6 @@ import moe.nmkmn.alcaris_items.converters.ItemConverter;
 import moe.nmkmn.alcaris_items.converters.MaterialItemConverter;
 import moe.nmkmn.alcaris_items.converters.ToolItemConverter;
 import moe.nmkmn.alcaris_items.models.ItemModel;
-import moe.nmkmn.alcaris_items.models.data.FoodDataModel;
-import moe.nmkmn.alcaris_items.models.data.ToolDataModel;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.*;
