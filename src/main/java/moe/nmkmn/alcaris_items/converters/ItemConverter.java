@@ -1,0 +1,43 @@
+package moe.nmkmn.alcaris_items.converters;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import moe.nmkmn.alcaris_items.models.ItemModel;
+import moe.nmkmn.alcaris_items.models.data.FoodDataModel;
+import moe.nmkmn.alcaris_items.models.data.ToolDataModel;
+import org.bukkit.inventory.ItemStack;
+
+public class ItemConverter {
+    private final FoodItemConverter foodItemConverter;
+    private final ToolItemConverter toolItemConverter;
+    private final MaterialItemConverter materialItemConverter;
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+    public ItemConverter(
+            FoodItemConverter foodItemConverter,
+            ToolItemConverter toolItemConverter,
+            MaterialItemConverter materialItemConverter
+    ) {
+        this.foodItemConverter = foodItemConverter;
+        this.toolItemConverter = toolItemConverter;
+        this.materialItemConverter = materialItemConverter;
+    }
+
+    public ItemStack convert(ItemModel item, int amount) {
+        ItemStack result = null;
+
+        switch (item.getCategory()) {
+            case "food" -> {
+                FoodDataModel foodData = gson.fromJson(gson.toJson(item.getData()), FoodDataModel.class);
+                result = foodItemConverter.createItem(item, foodData, amount);
+            }
+            case "tool" -> {
+                ToolDataModel toolData = gson.fromJson(gson.toJson(item.getData()), ToolDataModel.class);
+                result = toolItemConverter.createItem(item, toolData, amount);
+            }
+            case "material" -> result = materialItemConverter.createItem(item, amount);
+        }
+
+        return result;
+    }
+}

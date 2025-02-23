@@ -2,9 +2,11 @@ package moe.nmkmn.alcaris_items;
 
 import moe.nmkmn.alcaris_items.commands.CustomItemCommand;
 import moe.nmkmn.alcaris_items.converters.FoodItemConverter;
+import moe.nmkmn.alcaris_items.converters.ItemConverter;
 import moe.nmkmn.alcaris_items.converters.MaterialItemConverter;
 import moe.nmkmn.alcaris_items.converters.ToolItemConverter;
 import moe.nmkmn.alcaris_items.listeners.InventoryUpdateListener;
+import moe.nmkmn.alcaris_items.repositorys.ItemsRepository;
 import moe.nmkmn.alcaris_items.utils.ApiClientManager;
 import moe.nmkmn.alcaris_items.listeners.AdminAlertListener;
 import moe.nmkmn.alcaris_items.utils.CacheManager;
@@ -20,12 +22,18 @@ public final class AlcarisItems extends JavaPlugin {
     public final MiniMessage miniMessage = MiniMessage.miniMessage();
     public Component prefix = miniMessage.deserialize("[<gradient:#8a80ff:#9400d9>AlcarisItems</gradient>] ");
 
+    private static AlcarisItems instance;
+    private static ItemsRepository repository;
+    private static ItemConverter itemConverter;
+
     public String API_URL;
     public String API_KEY;
     private boolean isUsingCacheFallback = false;
 
     @Override
     public void onEnable() {
+        instance = this;
+
         saveDefaultConfig();
 
         API_URL = getConfig().getString("apiUrl");
@@ -64,6 +72,9 @@ public final class AlcarisItems extends JavaPlugin {
         FoodItemConverter foodItemConverter = new FoodItemConverter(this);
         ToolItemConverter toolItemConverter = new ToolItemConverter(this);
         MaterialItemConverter materialItemConverter = new MaterialItemConverter(this);
+
+        itemConverter = new ItemConverter(foodItemConverter, toolItemConverter, materialItemConverter);
+
         InventoryUpdater inventoryUpdater = new InventoryUpdater(this, foodItemConverter, toolItemConverter, materialItemConverter);
 
         // Listener
@@ -84,8 +95,15 @@ public final class AlcarisItems extends JavaPlugin {
         );
     }
 
-    @Override
-    public void onDisable() {
-        // Plugin shutdown logic
+    public static AlcarisItems getInstance() {
+        return instance;
+    }
+
+    public static ItemsRepository getRepository() {
+        return repository;
+    }
+
+    public static ItemConverter getItemConverter() {
+        return itemConverter;
     }
 }

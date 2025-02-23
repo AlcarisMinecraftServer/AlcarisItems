@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import moe.nmkmn.alcaris_items.AlcarisItems;
 import moe.nmkmn.alcaris_items.converters.FoodItemConverter;
+import moe.nmkmn.alcaris_items.converters.ItemConverter;
 import moe.nmkmn.alcaris_items.converters.MaterialItemConverter;
 import moe.nmkmn.alcaris_items.converters.ToolItemConverter;
 import moe.nmkmn.alcaris_items.models.ItemModel;
@@ -28,9 +29,7 @@ import java.util.stream.Stream;
 
 public class CustomItemCommand implements CommandExecutor, TabCompleter {
     private final AlcarisItems plugin;
-    private final FoodItemConverter foodItemConverter;
-    private final ToolItemConverter toolItemConverter;
-    private final MaterialItemConverter materialItemConverter;
+    private final ItemConverter itemConverter;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public CustomItemCommand(
@@ -40,9 +39,8 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
             MaterialItemConverter materialItemConverter
     ) {
         this.plugin = plugin;
-        this.foodItemConverter = foodItemConverter;
-        this.toolItemConverter = toolItemConverter;
-        this.materialItemConverter = materialItemConverter;
+
+        this.itemConverter = new ItemConverter(foodItemConverter, toolItemConverter, materialItemConverter);
     }
 
     @Override
@@ -140,7 +138,7 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
                 }
             }
 
-            ItemStack customItem = ItemConverter(itemData, amount);
+            ItemStack customItem = itemConverter.convert(itemData, amount);
 
             if (customItem == null) {
                 sender.sendMessage(ChatColor.RED + "アイテムの生成に失敗しました: " + itemId);
@@ -157,21 +155,4 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    private ItemStack ItemConverter(ItemModel item, int amount) {
-        ItemStack result = null;
-
-        switch (item.getCategory()) {
-            case "food" -> {
-                FoodDataModel foodData = gson.fromJson(gson.toJson(item.getData()), FoodDataModel.class);
-                result = foodItemConverter.createItem(item, foodData, amount);
-            }
-            case "tool" -> {
-                ToolDataModel toolData = gson.fromJson(gson.toJson(item.getData()), ToolDataModel.class);
-                result = toolItemConverter.createItem(item, toolData, amount);
-            }
-            case "material" -> result = materialItemConverter.createItem(item, amount);
-        }
-
-        return result;
-    }
 }
