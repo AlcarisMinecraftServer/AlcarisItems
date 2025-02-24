@@ -54,7 +54,6 @@ shadowJar {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            from components.java
             artifact tasks.shadowJar.archiveFile
             groupId = project.group
             artifactId = 'alcaris-items'
