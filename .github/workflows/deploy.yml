@@ -23,23 +23,25 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Determine Version and Nexus URL
+      - name: Set Build Version and Nexus URL
+        id: set-version
         run: |
           if [[ "${GITHUB_REF}" == refs/heads/develop ]]; then
-            echo "NEXUS_URL=${{ secrets.NEXUS_SNAPSHOT_URL }}" >> $GITHUB_ENV
-            echo "BUILD_VERSION=1.0.0-SNAPSHOT" >> $GITHUB_ENV
+            VERSION="1.0.${GITHUB_RUN_NUMBER}-SNAPSHOT"
+            NEXUS_URL=${{ secrets.NEXUS_SNAPSHOT_URL }}
           elif [[ "${GITHUB_REF}" == refs/heads/main || "${GITHUB_REF}" == refs/heads/master ]]; then
-            LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "1.0.0")
-            IFS='.' read -r MAJOR MINOR PATCH <<< "${LAST_TAG}"
-            NEW_PATCH=$((PATCH + 1))
-            VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
-            echo "NEXUS_URL=${{ secrets.NEXUS_RELEASE_URL }}" >> $GITHUB_ENV
-            echo "BUILD_VERSION=${VERSION}" >> $GITHUB_ENV
+            VERSION="1.0.${GITHUB_RUN_NUMBER}"
+            NEXUS_URL=${{ secrets.NEXUS_RELEASE_URL }}
           elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/v}
-            echo "NEXUS_URL=${{ secrets.NEXUS_RELEASE_URL }}" >> $GITHUB_ENV
-            echo "BUILD_VERSION=${VERSION}" >> $GITHUB_ENV
+            NEXUS_URL=${{ secrets.NEXUS_RELEASE_URL }}
           fi
+
+          echo "BUILD_VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "NEXUS_URL=${NEXUS_URL}" >> $GITHUB_ENV
+
+          echo "::set-output name=BUILD_VERSION::${VERSION}"
+          echo "::set-output name=NEXUS_URL::${NEXUS_URL}"
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -55,7 +57,7 @@ jobs:
           NEXUS_URL: ${{ env.NEXUS_URL }}
           BUILD_VERSION: ${{ env.BUILD_VERSION }}
 
-      - name: Create Git Tag for Patch
+      - name: Create Git Tag for main/master
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         run: |
           git config --global user.email "actions@github.com"
