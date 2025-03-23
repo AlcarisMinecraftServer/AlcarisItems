@@ -1,4 +1,4 @@
-package moe.nmkmn.alcaris_items.utils;
+package net.alcaris.plugin.items.utils;
 
 import org.jetbrains.annotations.NotNull;
 

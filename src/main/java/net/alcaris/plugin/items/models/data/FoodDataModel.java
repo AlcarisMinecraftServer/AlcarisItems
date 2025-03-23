@@ -1,4 +1,4 @@
-package moe.nmkmn.alcaris_items.models.data;
+package net.alcaris.plugin.items.models.data;
 
 import java.util.List;
 

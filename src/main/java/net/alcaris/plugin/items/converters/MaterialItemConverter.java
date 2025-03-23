@@ -1,9 +1,9 @@
-package moe.nmkmn.alcaris_items.converters;
+package net.alcaris.plugin.items.converters;
 
-import moe.nmkmn.alcaris_items.AlcarisItems;
-import moe.nmkmn.alcaris_items.enums.Colors;
-import moe.nmkmn.alcaris_items.enums.TextureIcons;
-import moe.nmkmn.alcaris_items.models.ItemModel;
+import net.alcaris.plugin.items.AlcarisItems;
+import net.alcaris.plugin.items.enums.Colors;
+import net.alcaris.plugin.items.enums.TextureIcons;
+import net.alcaris.plugin.items.models.ItemModel;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;

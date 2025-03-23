@@ -1,6 +1,6 @@
-package moe.nmkmn.alcaris_items.listeners;
+package net.alcaris.plugin.items.listeners;
 
-import moe.nmkmn.alcaris_items.AlcarisItems;
+import net.alcaris.plugin.items.AlcarisItems;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;

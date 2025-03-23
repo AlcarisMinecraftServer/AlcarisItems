@@ -1,4 +1,4 @@
-package moe.nmkmn.alcaris_items.models.data;
+package net.alcaris.plugin.items.models.data;
 
 import com.google.gson.annotations.SerializedName;
 import org.bukkit.Material;

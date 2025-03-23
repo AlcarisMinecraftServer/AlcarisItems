@@ -1,9 +1,9 @@
-package moe.nmkmn.alcaris_items.repositorys;
+package net.alcaris.plugin.items.repositorys;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import moe.nmkmn.alcaris_items.AlcarisItems;
-import moe.nmkmn.alcaris_items.models.ItemModel;
+import net.alcaris.plugin.items.AlcarisItems;
+import net.alcaris.plugin.items.models.ItemModel;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;

@@ -1,13 +1,15 @@
-package moe.nmkmn.alcaris_items.commands;
+package net.alcaris.plugin.items.commands;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import moe.nmkmn.alcaris_items.AlcarisItems;
-import moe.nmkmn.alcaris_items.converters.FoodItemConverter;
-import moe.nmkmn.alcaris_items.converters.ItemConverter;
-import moe.nmkmn.alcaris_items.converters.MaterialItemConverter;
-import moe.nmkmn.alcaris_items.converters.ToolItemConverter;
-import moe.nmkmn.alcaris_items.models.ItemModel;
+import net.alcaris.plugin.items.AlcarisItems;
+import net.alcaris.plugin.items.converters.FoodItemConverter;
+import net.alcaris.plugin.items.converters.ItemConverter;
+import net.alcaris.plugin.items.converters.MaterialItemConverter;
+import net.alcaris.plugin.items.converters.ToolItemConverter;
+import net.alcaris.plugin.items.models.ItemModel;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.*;
@@ -89,12 +91,22 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
     @Deprecated(forRemoval = true)
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         if (args.length < 3) {
-            sender.sendMessage(ChatColor.RED + "使用法: /custom-item give <player> <id> [amount]");
+            sender.sendMessage(
+                    plugin.prefix.append(
+                            Component.text("使用法: /custom-item give <player> <id> [amount]")
+                                    .color(NamedTextColor.RED)
+                    )
+            );
             return true;
         }
 
         if (!args[0].equalsIgnoreCase("give")) {
-            sender.sendMessage(ChatColor.RED + "不正なサブコマンドです。使用法: /custom-item give <player> <id> [amount]");
+            sender.sendMessage(
+                    plugin.prefix.append(
+                            Component.text("使用法: /custom-item give <player> <id> [amount]")
+                                    .color(NamedTextColor.RED)
+                    )
+            );
             return true;
         }
 

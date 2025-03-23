@@ -1,10 +1,10 @@
-package moe.nmkmn.alcaris_items.converters;
+package net.alcaris.plugin.items.converters;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import moe.nmkmn.alcaris_items.models.ItemModel;
-import moe.nmkmn.alcaris_items.models.data.FoodDataModel;
-import moe.nmkmn.alcaris_items.models.data.ToolDataModel;
+import net.alcaris.plugin.items.models.ItemModel;
+import net.alcaris.plugin.items.models.data.FoodDataModel;
+import net.alcaris.plugin.items.models.data.ToolDataModel;
 import org.bukkit.inventory.ItemStack;
 
 public class ItemConverter {

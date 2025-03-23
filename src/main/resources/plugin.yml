@@ -1,6 +1,6 @@
 name: AlcarisItems
 version: '1.0.0'
-main: moe.nmkmn.alcaris_items.AlcarisItems
+main: net.alcaris.plugin.items.AlcarisItems
 api-version: '1.21'
 
 commands:

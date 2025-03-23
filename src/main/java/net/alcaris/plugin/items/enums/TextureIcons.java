@@ -1,4 +1,4 @@
-package moe.nmkmn.alcaris_items.enums;
+package net.alcaris.plugin.items.enums;
 
 public enum TextureIcons {
     // ステータス用

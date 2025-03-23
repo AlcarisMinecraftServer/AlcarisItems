@@ -1,14 +1,14 @@
-package moe.nmkmn.alcaris_items.utils;
+package net.alcaris.plugin.items.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import moe.nmkmn.alcaris_items.AlcarisItems;
-import moe.nmkmn.alcaris_items.converters.FoodItemConverter;
-import moe.nmkmn.alcaris_items.converters.MaterialItemConverter;
-import moe.nmkmn.alcaris_items.converters.ToolItemConverter;
-import moe.nmkmn.alcaris_items.models.ItemModel;
-import moe.nmkmn.alcaris_items.models.data.FoodDataModel;
-import moe.nmkmn.alcaris_items.models.data.ToolDataModel;
+import net.alcaris.plugin.items.AlcarisItems;
+import net.alcaris.plugin.items.converters.FoodItemConverter;
+import net.alcaris.plugin.items.converters.MaterialItemConverter;
+import net.alcaris.plugin.items.converters.ToolItemConverter;
+import net.alcaris.plugin.items.models.ItemModel;
+import net.alcaris.plugin.items.models.data.FoodDataModel;
+import net.alcaris.plugin.items.models.data.ToolDataModel;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;

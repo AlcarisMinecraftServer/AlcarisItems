@@ -1,6 +1,6 @@
-package moe.nmkmn.alcaris_items.listeners;
+package net.alcaris.plugin.items.listeners;
 
-import moe.nmkmn.alcaris_items.utils.InventoryUpdater;
+import net.alcaris.plugin.items.utils.InventoryUpdater;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
