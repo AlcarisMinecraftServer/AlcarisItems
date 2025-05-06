@@ -105,17 +105,6 @@ public class WeaponItemConverter {
                             )
             );
 
-            lore.add(
-                    Component.text("必要レベル : ")
-                            .color(NamedTextColor.WHITE)
-                            .decoration(TextDecoration.ITALIC, false)
-                            .append(
-                                    Component.text(weapon.getRequirement())
-                                            .color(NamedTextColor.GREEN)
-                                            .decoration(TextDecoration.ITALIC,false)
-                            )
-            );
-
             double finalDamage = ((int) (weapon.getDamage() * damagePerformacnce)) / 100;
             double finalAttackRange = ((int) (weapon.getAttackRange() * attackRangePerformacnce)) / 100;
             double finalAttackSpeed = ((int) (weapon.getAttackSpeed() * attackSpeedPerformacnce)) / 100;
@@ -196,7 +185,7 @@ public class WeaponItemConverter {
                 .append(Component.text("%")
                         .color(NamedTextColor.GREEN)
                         .decoration(TextDecoration.ITALIC, false))
-                .append(Component.text(" )")
+                .append(Component.text(")")
                         .color(NamedTextColor.WHITE)
                         .decoration(TextDecoration.ITALIC, false));
     }
