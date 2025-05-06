@@ -105,12 +105,12 @@ public class WeaponItemConverter {
                             )
             );
 
-            double finalDamage = ((int) (weapon.getDamage() * damagePerformacnce)) / 100;
-            double finalAttackRange = ((int) (weapon.getAttackRange() * attackRangePerformacnce)) / 100;
-            double finalAttackSpeed = ((int) (weapon.getAttackSpeed() * attackSpeedPerformacnce)) / 100;
-            double finalWalkSpeed = ((int) (weapon.getWalkSpeed() * walkSpeedPerformacnce)) / 100;
-            double finalXpBonus = ((int) (weapon.getXpBonus() * xpBonusPerformacnce)) / 100;
-            double finalLootBonus = ((int) (weapon.getLootBonus() * lootBonusPerformacnce)) / 100;
+            double finalDamage = Math.floor((weapon.getDamage() * damagePerformacnce) / 10.0) / 10.0;
+            double finalAttackRange = Math.floor((weapon.getAttackRange() * attackRangePerformacnce) / 10.0) / 10.0;
+            double finalAttackSpeed = Math.floor((weapon.getAttackSpeed() * attackSpeedPerformacnce) / 10.0) / 10.0;
+            double finalWalkSpeed = (int) (weapon.getWalkSpeed() * walkSpeedPerformacnce) / 100;
+            double finalXpBonus = (int) (weapon.getXpBonus() * xpBonusPerformacnce) / 100;
+            double finalLootBonus = (int) (weapon.getLootBonus() * lootBonusPerformacnce) / 100;
 
             if (weapon.getDamage() != 0) lore.add(buildStatLine("攻撃力", String.valueOf(finalDamage), String.valueOf(damagePerformacnce)));
             if (weapon.getAttackRange() != 0) lore.add(buildStatLine("攻撃距離", String.valueOf(finalAttackRange), String.valueOf(attackRangePerformacnce)));
