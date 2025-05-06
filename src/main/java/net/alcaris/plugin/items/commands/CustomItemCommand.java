@@ -3,10 +3,7 @@ package net.alcaris.plugin.items.commands;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.alcaris.plugin.items.AlcarisItems;
-import net.alcaris.plugin.items.converters.FoodItemConverter;
-import net.alcaris.plugin.items.converters.ItemConverter;
-import net.alcaris.plugin.items.converters.MaterialItemConverter;
-import net.alcaris.plugin.items.converters.ToolItemConverter;
+import net.alcaris.plugin.items.converters.*;
 import net.alcaris.plugin.items.models.ItemModel;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -36,11 +33,12 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
             AlcarisItems plugin,
             FoodItemConverter foodItemConverter,
             ToolItemConverter toolItemConverter,
-            MaterialItemConverter materialItemConverter
+            MaterialItemConverter materialItemConverter,
+            WeaponItemConverter weaponItemConverter
     ) {
         this.plugin = plugin;
 
-        this.itemConverter = new ItemConverter(foodItemConverter, toolItemConverter, materialItemConverter);
+        this.itemConverter = new ItemConverter(foodItemConverter, toolItemConverter, materialItemConverter,weaponItemConverter);
     }
 
     @Override
