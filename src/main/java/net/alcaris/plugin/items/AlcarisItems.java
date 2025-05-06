@@ -74,7 +74,7 @@ public final class AlcarisItems extends JavaPlugin {
 
         itemConverter = new ItemConverter(foodItemConverter, toolItemConverter, materialItemConverter,weaponItemConverter);
 
-        InventoryUpdater inventoryUpdater = new InventoryUpdater(this, foodItemConverter, toolItemConverter, materialItemConverter);
+        InventoryUpdater inventoryUpdater = new InventoryUpdater(this, foodItemConverter, toolItemConverter, materialItemConverter, weaponItemConverter);
 
         // Listener
         getServer().getPluginManager().registerEvents(new AdminAlertListener(this, isUsingCacheFallback), this);

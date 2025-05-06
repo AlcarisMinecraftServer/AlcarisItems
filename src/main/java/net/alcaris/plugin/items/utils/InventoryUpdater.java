@@ -6,9 +6,11 @@ import net.alcaris.plugin.items.AlcarisItems;
 import net.alcaris.plugin.items.converters.FoodItemConverter;
 import net.alcaris.plugin.items.converters.MaterialItemConverter;
 import net.alcaris.plugin.items.converters.ToolItemConverter;
+import net.alcaris.plugin.items.converters.WeaponItemConverter;
 import net.alcaris.plugin.items.models.ItemModel;
 import net.alcaris.plugin.items.models.data.FoodDataModel;
 import net.alcaris.plugin.items.models.data.ToolDataModel;
+import net.alcaris.plugin.items.models.data.WeaponDataModel;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -28,6 +30,7 @@ public class InventoryUpdater {
     private final FoodItemConverter foodConverter;
     private final ToolItemConverter toolConverter;
     private final MaterialItemConverter materialConverter;
+    private final WeaponItemConverter weaponItemConverter;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     private final NamespacedKey keyId;
     private final NamespacedKey keyVersion;
@@ -36,12 +39,14 @@ public class InventoryUpdater {
             AlcarisItems plugin,
             FoodItemConverter foodConverter,
             ToolItemConverter toolConverter,
-            MaterialItemConverter materialConverter
+            MaterialItemConverter materialConverter,
+            WeaponItemConverter weaponItemConverter
     ) {
         this.plugin = plugin;
         this.foodConverter = foodConverter;
         this.toolConverter = toolConverter;
         this.materialConverter = materialConverter;
+        this.weaponItemConverter = weaponItemConverter;
         this.keyId = new NamespacedKey(plugin, "item_id");
         this.keyVersion = new NamespacedKey(plugin, "item_version");
     }
@@ -78,6 +83,9 @@ public class InventoryUpdater {
                     } else if ("tool".equals(model.getCategory())) {
                         ToolDataModel toolData = gson.fromJson(gson.toJson(model.getData()), ToolDataModel.class);
                         newItem = updateToolItem(model, toolData, item);
+                    } else if ("weapon".equals(model.getCategory())) {
+                        WeaponDataModel weaponData = gson.fromJson(gson.toJson(model.getData()), WeaponDataModel.class);
+                        newItem = updateWeaponItem(model, weaponData, item);
                     } else if ("material".equals(model.getCategory())) {
                         newItem = materialConverter.createItem(model, item.getAmount());
                     }
@@ -95,6 +103,17 @@ public class InventoryUpdater {
 
     private ItemStack updateToolItem(ItemModel model, ToolDataModel toolData, ItemStack oldItem) {
         ItemStack newItem = toolConverter.createItem(model, toolData, oldItem.getAmount());
+
+        if (newItem.getItemMeta() instanceof Damageable newMeta && oldItem.getItemMeta() instanceof Damageable oldMeta) {
+            newMeta.setDamage(oldMeta.getDamage());
+            newItem.setItemMeta(newMeta);
+        }
+
+        return newItem;
+    }
+
+    private ItemStack updateWeaponItem(ItemModel model, WeaponDataModel weaponData, ItemStack oldItem) {
+        ItemStack newItem = weaponItemConverter.updateItem(model, weaponData, oldItem.getAmount(), oldItem);
 
         if (newItem.getItemMeta() instanceof Damageable newMeta && oldItem.getItemMeta() instanceof Damageable oldMeta) {
             newMeta.setDamage(oldMeta.getDamage());
