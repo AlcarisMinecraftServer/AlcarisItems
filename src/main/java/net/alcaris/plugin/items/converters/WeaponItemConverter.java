@@ -105,12 +105,13 @@ public class WeaponItemConverter {
                             )
             );
 
-            double finalDamage = Math.floor((weapon.getDamage() * damagePerformacnce) / 10.0) / 10.0;
-            double finalAttackRange = Math.floor((weapon.getAttackRange() * attackRangePerformacnce) / 10.0) / 10.0;
-            double finalAttackSpeed = Math.floor((weapon.getAttackSpeed() * attackSpeedPerformacnce) / 10.0) / 10.0;
-            double finalWalkSpeed = (int) (weapon.getWalkSpeed() * walkSpeedPerformacnce) / 100;
-            double finalXpBonus = (int) (weapon.getXpBonus() * xpBonusPerformacnce) / 100;
-            double finalLootBonus = (int) (weapon.getLootBonus() * lootBonusPerformacnce) / 100;
+            double finalDamage = Math.floor(weapon.getDamage() * (0.5 * (1 + damagePerformacnce / 100.0)) * 10) / 10.0;
+            double finalAttackRange = Math.floor(weapon.getAttackRange() * (0.5 * (1 + attackRangePerformacnce / 100.0)) * 100) / 100.0;
+            double finalAttackSpeed = Math.floor(weapon.getAttackSpeed() * (0.5 * (1 + attackSpeedPerformacnce / 100.0)) * 100) / 100.0;
+
+            int finalWalkSpeed = (int)(weapon.getWalkSpeed() * (0.5 * (1 + walkSpeedPerformacnce / 100.0)));
+            int finalXpBonus = (int)(weapon.getXpBonus() * (0.5 * (1 + xpBonusPerformacnce / 100.0)));
+            int finalLootBonus = (int)(weapon.getLootBonus() * (0.5 * (1 + lootBonusPerformacnce / 100.0)));
 
             if (weapon.getDamage() != 0) lore.add(buildStatLine("攻撃力", String.valueOf(finalDamage), String.valueOf(damagePerformacnce)));
             if (weapon.getAttackRange() != 0) lore.add(buildStatLine("攻撃距離", String.valueOf(finalAttackRange), String.valueOf(attackRangePerformacnce)));
@@ -151,15 +152,15 @@ public class WeaponItemConverter {
             container.set(polishing_key, PersistentDataType.INTEGER, weapon.getPolishingCount());
             container.set(damage_key, PersistentDataType.DOUBLE, finalDamage);
             container.set(damage_perf_key, PersistentDataType.INTEGER, damagePerformacnce);
-            container.set(walkspeed_key, PersistentDataType.DOUBLE, finalWalkSpeed);
+            container.set(walkspeed_key, PersistentDataType.INTEGER, finalWalkSpeed);
             container.set(walkspeed_perf_key, PersistentDataType.INTEGER, walkSpeedPerformacnce);
             container.set(attack_range_key, PersistentDataType.DOUBLE, finalAttackRange);
             container.set(attack_range_perf_key, PersistentDataType.INTEGER, attackRangePerformacnce);
             container.set(attack_speed_key, PersistentDataType.DOUBLE, finalAttackSpeed);
             container.set(attack_speed_perf_key, PersistentDataType.INTEGER, attackSpeedPerformacnce);
-            container.set(xp_bonus_key, PersistentDataType.DOUBLE, finalXpBonus);
+            container.set(xp_bonus_key, PersistentDataType.INTEGER, finalXpBonus);
             container.set(xp_bonus_perf_key, PersistentDataType.INTEGER, xpBonusPerformacnce);
-            container.set(loot_bonus_key, PersistentDataType.DOUBLE, finalLootBonus);
+            container.set(loot_bonus_key, PersistentDataType.INTEGER, finalLootBonus);
             container.set(loot_bonus_perf_key, PersistentDataType.INTEGER, lootBonusPerformacnce);
 
 
