@@ -19,15 +19,15 @@ public class ToolItemConverter extends BaseItemConverter<ToolDataModel> {
 
     @Override
     protected Material getMaterial(ItemModel item) {
-        // TODO: あとでツールデータから
-        String toolType = "pickaxe";
+        ToolDataModel toolData = (ToolDataModel) item.getData();
+        ToolDataModel.ToolType toolType = toolData.getToolType();
 
         return switch (toolType) {
-            case "sword" -> Material.WOODEN_SWORD;
-            case "pickaxe" -> Material.WOODEN_PICKAXE;
-            case "axe" -> Material.WOODEN_AXE;
-            case "shovel" -> Material.WOODEN_SHOVEL;
-            case "hoe" -> Material.WOODEN_HOE;
+            case SWORD -> Material.WOODEN_SWORD;
+            case PICKAXE -> Material.WOODEN_PICKAXE;
+            case AXE -> Material.WOODEN_AXE;
+            case SHOVEL -> Material.WOODEN_SHOVEL;
+            case HOE -> Material.WOODEN_HOE;
             default -> Material.STICK;
         };
     }
