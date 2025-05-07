@@ -5,7 +5,6 @@ import net.alcaris.plugin.items.converters.*;
 import net.alcaris.plugin.items.listeners.InventoryUpdateListener;
 import net.alcaris.plugin.items.repositorys.ItemsRepository;
 import net.alcaris.plugin.items.utils.ApiClientManager;
-import net.alcaris.plugin.items.listeners.AdminAlertListener;
 import net.alcaris.plugin.items.utils.CacheManager;
 import net.alcaris.plugin.items.utils.InventoryUpdater;
 import net.kyori.adventure.text.Component;
@@ -25,7 +24,6 @@ public final class AlcarisItems extends JavaPlugin {
 
     public String API_URL;
     public String API_KEY;
-    private boolean isUsingCacheFallback = false;
 
     @Override
     public void onEnable() {
@@ -63,7 +61,6 @@ public final class AlcarisItems extends JavaPlugin {
                 return;
             } else {
                 getLogger().warning("APIアクセスに失敗したため、キャッシュデータを使用します。");
-                isUsingCacheFallback = true;
             }
         }
 
@@ -77,7 +74,6 @@ public final class AlcarisItems extends JavaPlugin {
         InventoryUpdater inventoryUpdater = new InventoryUpdater(this, foodItemConverter, toolItemConverter, materialItemConverter, weaponItemConverter);
 
         // Listener
-        getServer().getPluginManager().registerEvents(new AdminAlertListener(this, isUsingCacheFallback), this);
         getServer().getPluginManager().registerEvents(new InventoryUpdateListener(inventoryUpdater), this);
 
         // Scheduler
