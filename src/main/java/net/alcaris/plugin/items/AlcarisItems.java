@@ -1,10 +1,7 @@
 package net.alcaris.plugin.items;
 
 import net.alcaris.plugin.items.commands.CustomItemCommand;
-import net.alcaris.plugin.items.converters.FoodItemConverter;
-import net.alcaris.plugin.items.converters.ItemConverter;
-import net.alcaris.plugin.items.converters.MaterialItemConverter;
-import net.alcaris.plugin.items.converters.ToolItemConverter;
+import net.alcaris.plugin.items.converters.*;
 import net.alcaris.plugin.items.listeners.InventoryUpdateListener;
 import net.alcaris.plugin.items.repositorys.ItemsRepository;
 import net.alcaris.plugin.items.utils.ApiClientManager;
@@ -73,10 +70,11 @@ public final class AlcarisItems extends JavaPlugin {
         FoodItemConverter foodItemConverter = new FoodItemConverter(this);
         ToolItemConverter toolItemConverter = new ToolItemConverter(this);
         MaterialItemConverter materialItemConverter = new MaterialItemConverter(this);
+        WeaponItemConverter weaponItemConverter = new WeaponItemConverter(this);
 
-        itemConverter = new ItemConverter(foodItemConverter, toolItemConverter, materialItemConverter);
+        itemConverter = new ItemConverter(foodItemConverter, toolItemConverter, materialItemConverter,weaponItemConverter);
 
-        InventoryUpdater inventoryUpdater = new InventoryUpdater(this, foodItemConverter, toolItemConverter, materialItemConverter);
+        InventoryUpdater inventoryUpdater = new InventoryUpdater(this, foodItemConverter, toolItemConverter, materialItemConverter, weaponItemConverter);
 
         // Listener
         getServer().getPluginManager().registerEvents(new AdminAlertListener(this, isUsingCacheFallback), this);
@@ -91,7 +89,8 @@ public final class AlcarisItems extends JavaPlugin {
                         this,
                         foodItemConverter,
                         toolItemConverter,
-                        materialItemConverter
+                        materialItemConverter,
+                        weaponItemConverter
                 )
         );
     }
