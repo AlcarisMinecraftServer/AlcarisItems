@@ -79,7 +79,7 @@ public abstract class BaseItemConverter<T> {
     }
 
     protected void setLoreMetaData(List<Component> lore, ItemModel item) {
-        lore.add(Component.text("                          ")
+        lore.add(Component.text("                                  ")
                 .color(NamedTextColor.DARK_GRAY)
                 .decoration(TextDecoration.STRIKETHROUGH, true));
         lore.add(Component.text("")
