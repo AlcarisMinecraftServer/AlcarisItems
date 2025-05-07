@@ -92,7 +92,7 @@ public abstract class BaseItemConverter<T> {
     protected void setIdentifiers(ItemMeta meta, ItemModel item) {
         PersistentDataContainer container = meta.getPersistentDataContainer();
         container.set(new NamespacedKey(plugin, "item_id"), PersistentDataType.STRING, item.getId());
-        container.set(new NamespacedKey(plugin, "item_version"), PersistentDataType.INTEGER, item.getVersion());
+        container.set(new NamespacedKey(plugin, "item_version"), PersistentDataType.LONG, item.getVersion());
     }
 
     protected abstract String getCategoryName();

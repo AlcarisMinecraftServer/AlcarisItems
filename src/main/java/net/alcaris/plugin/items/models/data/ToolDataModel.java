@@ -9,9 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ToolDataModel {
+    private ToolType tool_type;
     private int max_damage;
     private Rules rules;
-    private List<Object> upgrades;
+    private List<Upgrade> upgrades;
+
+    public ToolType getToolType() {
+        return tool_type;
+    }
 
     public int getMaxDamage() {
         return max_damage;
@@ -21,8 +26,12 @@ public class ToolDataModel {
         return rules;
     }
 
-    public List<Object> getUpgrades() {
+    public List<Upgrade> getUpgrades() {
         return upgrades;
+    }
+
+    public enum ToolType {
+        SWORD, PICKAXE, AXE, SHOVEL, HOE, CUSTOM
     }
 
     public static class Rules {
@@ -116,6 +125,14 @@ public class ToolDataModel {
             } catch (IllegalArgumentException e) {
                 return null;
             }
+        }
+    }
+
+    public static class Upgrade {
+        private int level;
+
+        public int getLevel() {
+            return level;
         }
     }
 }

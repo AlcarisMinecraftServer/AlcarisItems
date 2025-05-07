@@ -61,11 +61,11 @@ public class InventoryUpdater {
             if (meta == null) continue;
 
             PersistentDataContainer container = meta.getPersistentDataContainer();
-            if (!container.has(keyId, PersistentDataType.STRING) || !container.has(keyVersion, PersistentDataType.INTEGER)) {
+            if (!container.has(keyId, PersistentDataType.STRING) || !container.has(keyVersion, PersistentDataType.LONG)) {
                 continue;
             }
             String itemId = container.get(keyId, PersistentDataType.STRING);
-            Integer storedVersion = container.get(keyVersion, PersistentDataType.INTEGER);
+            Long storedVersion = container.get(keyVersion, PersistentDataType.LONG);
             if (itemId == null || storedVersion == null) continue;
 
             File cacheFile = new File(plugin.getDataFolder(), "caches" + File.separator + itemId + ".json");
@@ -73,21 +73,25 @@ public class InventoryUpdater {
 
             try (FileReader reader = new FileReader(cacheFile)) {
                 ItemModel model = gson.fromJson(reader, ItemModel.class);
-                int currentVersion = model.getVersion();
+                long currentVersion = model.getVersion();
 
                 if (!storedVersion.equals(currentVersion)) {
                     ItemStack newItem = null;
-                    if ("food".equals(model.getCategory())) {
-                        FoodDataModel foodData = gson.fromJson(gson.toJson(model.getData()), FoodDataModel.class);
-                        newItem = foodConverter.createItem(model, foodData, item.getAmount());
-                    } else if ("tool".equals(model.getCategory())) {
-                        ToolDataModel toolData = gson.fromJson(gson.toJson(model.getData()), ToolDataModel.class);
-                        newItem = updateToolItem(model, toolData, item);
-                    } else if ("weapon".equals(model.getCategory())) {
-                        WeaponDataModel weaponData = gson.fromJson(gson.toJson(model.getData()), WeaponDataModel.class);
-                        newItem = updateWeaponItem(model, weaponData, item);
-                    } else if ("material".equals(model.getCategory())) {
-                        newItem = materialConverter.createItem(model, null, item.getAmount());
+
+                    switch (model.getCategory()) {
+                        case FOOD -> {
+                            FoodDataModel foodData = gson.fromJson(gson.toJson(model.getData()), FoodDataModel.class);
+                            newItem = foodConverter.createItem(model, foodData, item.getAmount());
+                        }
+                        case TOOL -> {
+                            ToolDataModel toolData = gson.fromJson(gson.toJson(model.getData()), ToolDataModel.class);
+                            newItem = updateToolItem(model, toolData, item);
+                        }
+                        case WEAPON -> {
+                            WeaponDataModel weaponData = gson.fromJson(gson.toJson(model.getData()), WeaponDataModel.class);
+                            newItem = updateWeaponItem(model, weaponData, item);
+                        }
+                        case MATERIAL -> newItem = materialConverter.createItem(model, null, item.getAmount());
                     }
 
                     if (newItem != null) {

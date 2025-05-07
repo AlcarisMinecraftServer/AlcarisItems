@@ -183,7 +183,7 @@ public class WeaponItemConverter {
 
             PersistentDataContainer container = itemMeta.getPersistentDataContainer();
             container.set(keyId, PersistentDataType.STRING, item.getId());
-            container.set(keyVersion, PersistentDataType.INTEGER, item.getVersion());
+            container.set(keyVersion, PersistentDataType.LONG, item.getVersion());
 
             container.set(type_key, PersistentDataType.STRING, type);
             container.set(requirement_key, PersistentDataType.INTEGER, requirement);
