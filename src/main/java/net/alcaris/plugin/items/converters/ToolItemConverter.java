@@ -1,5 +1,7 @@
 package net.alcaris.plugin.items.converters;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.alcaris.plugin.items.AlcarisItems;
 import net.alcaris.plugin.items.models.ItemModel;
 import net.alcaris.plugin.items.models.data.ToolDataModel;
@@ -13,13 +15,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ToolItemConverter extends BaseItemConverter<ToolDataModel> {
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
     public ToolItemConverter(AlcarisItems plugin) {
         super(plugin);
     }
 
     @Override
     protected Material getMaterial(ItemModel item) {
-        ToolDataModel toolData = (ToolDataModel) item.getData();
+        ToolDataModel toolData = gson.fromJson(gson.toJson(item.getData()), ToolDataModel.class);
         ToolDataModel.ToolType toolType = toolData.getToolType();
 
         return switch (toolType) {
