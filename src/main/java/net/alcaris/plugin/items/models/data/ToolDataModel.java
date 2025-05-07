@@ -8,10 +8,16 @@ import org.bukkit.inventory.meta.components.ToolComponent;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class ToolDataModel {
+    private ToolType tool_type;
     private int max_damage;
     private Rules rules;
-    private List<Object> upgrades;
+    private List<Upgrade> upgrades;
+
+    public ToolType getToolType() {
+        return tool_type;
+    }
 
     public int getMaxDamage() {
         return max_damage;
@@ -21,8 +27,17 @@ public class ToolDataModel {
         return rules;
     }
 
-    public List<Object> getUpgrades() {
+    public List<Upgrade> getUpgrades() {
         return upgrades;
+    }
+
+    public enum ToolType {
+        @SerializedName("sword") SWORD,
+        @SerializedName("pickaxe") PICKAXE,
+        @SerializedName("axe") AXE,
+        @SerializedName("shovel") SHOVEL,
+        @SerializedName("hoe") HOE,
+        @SerializedName("custom") CUSTOM
     }
 
     public static class Rules {
@@ -116,6 +131,14 @@ public class ToolDataModel {
             } catch (IllegalArgumentException e) {
                 return null;
             }
+        }
+    }
+
+    public static class Upgrade {
+        private int level;
+
+        public int getLevel() {
+            return level;
         }
     }
 }

@@ -41,7 +41,7 @@ public class ApiClientManager {
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Accept", "application/json");
         connection.setRequestProperty("Content-Type", "application/json");
-        connection.setRequestProperty("Authorization", "Basic " + apiKey);
+        connection.setRequestProperty("Authorization", "Bearer " + apiKey);
 
         if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
             throw new IOException("HTTP error code: " + connection.getResponseCode() + " - " + connection.getResponseMessage());

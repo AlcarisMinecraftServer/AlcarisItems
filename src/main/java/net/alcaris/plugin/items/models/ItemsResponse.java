@@ -2,6 +2,7 @@ package net.alcaris.plugin.items.models;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class ItemsResponse {
     private String status;
     private List<ItemModel> data;

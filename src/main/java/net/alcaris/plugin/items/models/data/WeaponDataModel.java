@@ -1,14 +1,6 @@
 package net.alcaris.plugin.items.models.data;
 
-import com.google.gson.annotations.SerializedName;
-import org.bukkit.Material;
-import org.bukkit.Tag;
-import org.bukkit.inventory.meta.components.ToolComponent;
-
-import java.util.ArrayList;
-import java.util.List;
-
-
+@SuppressWarnings("unused")
 public class WeaponDataModel {
     private String type;
     private int requirement;

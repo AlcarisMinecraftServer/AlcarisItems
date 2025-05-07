@@ -30,19 +30,19 @@ public class ItemConverter {
         ItemStack result = null;
 
         switch (item.getCategory()) {
-            case "food" -> {
+            case FOOD -> {
                 FoodDataModel foodData = gson.fromJson(gson.toJson(item.getData()), FoodDataModel.class);
                 result = foodItemConverter.createItem(item, foodData, amount);
             }
-            case "tool" -> {
+            case TOOL -> {
                 ToolDataModel toolData = gson.fromJson(gson.toJson(item.getData()), ToolDataModel.class);
                 result = toolItemConverter.createItem(item, toolData, amount);
             }
-            case "weapon" -> {
-                WeaponDataModel weaponData = gson.fromJson(gson.toJson(item.getData()),WeaponDataModel.class);
+            case WEAPON -> {
+                WeaponDataModel weaponData = gson.fromJson(gson.toJson(item.getData()), WeaponDataModel.class);
                 result = weaponItemConverter.createNewItem(item, weaponData, amount);
             }
-            case "material" -> result = materialItemConverter.createItem(item, amount);
+            case MATERIAL -> result = materialItemConverter.createItem(item, null, amount);
         }
 
         return result;

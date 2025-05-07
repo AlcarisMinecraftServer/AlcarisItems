@@ -114,7 +114,7 @@ public class WeaponItemConverter {
 
         int finalWalkSpeed = (int) (weapon.getWalkSpeed() * (0.5 * (1 + walkSpeedPerformance / 100.0)));
         int finalXpBonus = (int) (weapon.getXpBonus() * (0.5 * (1 + xpBonusPerformance / 100.0)));
-        int finalLootBonus = (int) (weapon.getLootBonus() * (0.5 * (1 + lootBonusPerformance / 100.0)));;
+        int finalLootBonus = (int) (weapon.getLootBonus() * (0.5 * (1 + lootBonusPerformance / 100.0)));
 
 
         if (itemMeta != null) {
@@ -179,11 +179,11 @@ public class WeaponItemConverter {
             if (weapon.getLootBonus() != 0)
                 lore.add(buildStatLine("ドロップ率ボーナス", String.valueOf(finalLootBonus), String.valueOf(lootBonusPerformance)));
 
-            itemMeta.lore(lore);;
+            itemMeta.lore(lore);
 
             PersistentDataContainer container = itemMeta.getPersistentDataContainer();
             container.set(keyId, PersistentDataType.STRING, item.getId());
-            container.set(keyVersion, PersistentDataType.INTEGER, item.getVersion());
+            container.set(keyVersion, PersistentDataType.LONG, item.getVersion());
 
             container.set(type_key, PersistentDataType.STRING, type);
             container.set(requirement_key, PersistentDataType.INTEGER, requirement);

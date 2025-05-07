@@ -2,6 +2,7 @@ package net.alcaris.plugin.items.models.data;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class FoodDataModel {
     private int nutrition;
     private float saturation;
@@ -9,7 +10,7 @@ public class FoodDataModel {
     private float eat_seconds;
     private List<Effect> effects;
     private List<Attribute> attributes;
-    private List<Object> buff;
+    private List<Buff> buffs;
 
     public int getNutrition() {
         return nutrition;
@@ -35,8 +36,8 @@ public class FoodDataModel {
         return attributes;
     }
 
-    public List<Object> getBuff() {
-        return buff;
+    public List<Buff> getBuff() {
+        return buffs;
     }
 
     public static class Effect {
@@ -82,6 +83,24 @@ public class FoodDataModel {
 
         public int getDuration() {
             return duration;
+        }
+    }
+
+    public static class Buff {
+        private String kind;
+        private int duration;
+        private float amount;
+
+        public String getKind() {
+            return kind;
+        }
+
+        public int getDuration() {
+            return duration;
+        }
+
+        public float getAmount() {
+            return amount;
         }
     }
 }

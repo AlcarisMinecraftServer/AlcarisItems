@@ -1,106 +1,57 @@
 package net.alcaris.plugin.items.converters;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.alcaris.plugin.items.AlcarisItems;
 import net.alcaris.plugin.items.models.ItemModel;
 import net.alcaris.plugin.items.models.data.ToolDataModel;
-import net.alcaris.plugin.items.enums.Colors;
-import net.alcaris.plugin.items.enums.TextureIcons;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.components.ToolComponent;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ToolItemConverter {
-    private final AlcarisItems plugin;
+public class ToolItemConverter extends BaseItemConverter<ToolDataModel> {
+    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    public ToolItemConverter(final AlcarisItems plugin) {
-        this.plugin = plugin;
+    public ToolItemConverter(AlcarisItems plugin) {
+        super(plugin);
     }
 
-    private Material getToolMaterial(String itemId) {
-        String toolId = itemId.substring(itemId.lastIndexOf("_"));
+    @Override
+    protected Material getMaterial(ItemModel item) {
+        ToolDataModel toolData = gson.fromJson(gson.toJson(item.getData()), ToolDataModel.class);
+        ToolDataModel.ToolType toolType = toolData.getToolType();
 
-        switch (toolId) {
-            case "_pickaxe" -> {
-                return Material.WOODEN_PICKAXE;
-            }
-            case "_axe" -> {
-                return Material.WOODEN_AXE;
-            }
-            case "_shovel" -> {
-                return Material.WOODEN_SHOVEL;
-            }
-            case "_hoe" -> {
-                return Material.WOODEN_HOE;
-            }
-        }
-
-        return Material.STONE;
+        return switch (toolType) {
+            case SWORD -> Material.WOODEN_SWORD;
+            case PICKAXE -> Material.WOODEN_PICKAXE;
+            case AXE -> Material.WOODEN_AXE;
+            case SHOVEL -> Material.WOODEN_SHOVEL;
+            case HOE -> Material.WOODEN_HOE;
+            default -> Material.STICK;
+        };
     }
 
-    @SuppressWarnings("all")
-    public ItemStack createItem(ItemModel item, ToolDataModel tool, int amount) {
-        ItemStack itemStack = new ItemStack(getToolMaterial(item.getId()), amount);
-        Damageable itemMeta = (Damageable) itemStack.getItemMeta();
+    @Override
+    protected String getCategoryName() {
+        return "ツール";
+    }
 
-        if (itemMeta != null) {
-            itemMeta.displayName(
-                    plugin.miniMessage.deserialize(item.getName())
-                            .color(TextColor.fromHexString(Colors.fromRarity(item.getRarity()).getHexCode()))
-                            .decoration(TextDecoration.ITALIC, false)
-            );
-            itemMeta.setMaxStackSize(item.getMaxStack());
+    @Override
+    protected void setLoreItemData(List<Component> lore, ItemModel item, ToolDataModel tool) {
+        // TODO: ツールのステータスを実装（耐久値、採掘可能）
+    }
 
-            if (item.getCustomModelData() != 0) {
-                itemMeta.setCustomModelData(item.getCustomModelData());
-            }
-
-            // 説明
-            List<Component> lore = new ArrayList<>();
-            for (String text: item.getLore()) {
-                lore.add(
-                        Component.text(text)
-                                .color(TextColor.fromHexString("#D8D8D8"))
-                                .decoration(TextDecoration.ITALIC, false)
-                );
-            }
-
-            // レアリティー・カテゴリー
-            lore.add(
-                    Component.text("                          ")
-                            .color(NamedTextColor.DARK_GRAY)
-                            .decoration(TextDecoration.STRIKETHROUGH, true)
-            );
-            lore.add(
-                    Component.text("")
-                            .color(NamedTextColor.WHITE)
-                            .decoration(TextDecoration.ITALIC, false)
-                            .append(
-                                    Component.text("▸ ツール")
-                                            .append(
-                                                    Component.text(
-                                                            "【" + TextureIcons.fromRarity(item.getRarity()).getUnicode() + "】"
-                                                    )
-                                            )
-                            )
-            );
-
-            itemMeta.lore(lore);
-
-            // アイテムのメタデータ
-            itemMeta.setMaxDamage(tool.getMaxDamage());
-
-            ToolComponent toolComponent = itemMeta.getTool();
+    @Override
+    @SuppressWarnings("UnstableApiUsage")
+    protected void setAdditionalMeta(ItemMeta meta, ToolDataModel tool) {
+        if (meta instanceof Damageable damageable) {
+            damageable.setMaxDamage(tool.getMaxDamage());
+            ToolComponent toolComponent = damageable.getTool();
             toolComponent.setRules(new ArrayList<>());
             toolComponent.setDefaultMiningSpeed(tool.getRules().getDefaultRule().getSpeed());
             toolComponent.setDamagePerBlock(tool.getRules().getDefaultRule().getDamage());
@@ -109,17 +60,7 @@ public class ToolItemConverter {
                 condition.applyToToolRule(toolComponent);
             }
 
-            // 識別タグ
-            NamespacedKey keyId = new NamespacedKey(plugin, "item_id");
-            NamespacedKey keyVersion = new NamespacedKey(plugin, "item_version");
-            PersistentDataContainer container = itemMeta.getPersistentDataContainer();
-            container.set(keyId, PersistentDataType.STRING, item.getId());
-            container.set(keyVersion, PersistentDataType.INTEGER, item.getVersion());
-
-            itemMeta.setTool(toolComponent);
-            itemStack.setItemMeta(itemMeta);
+            damageable.setTool(toolComponent);
         }
-
-        return itemStack;
     }
 }
