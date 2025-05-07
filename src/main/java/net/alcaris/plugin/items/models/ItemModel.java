@@ -1,5 +1,7 @@
 package net.alcaris.plugin.items.models;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 @SuppressWarnings("unused")
@@ -79,7 +81,11 @@ public class ItemModel {
     }
 
     public enum ItemCategory {
-        FOOD, TOOL, ARMOR, WEAPON, MATERIAL;
+        @SerializedName("food") FOOD,
+        @SerializedName("tool") TOOL,
+        @SerializedName("armor") ARMOR,
+        @SerializedName("weapon") WEAPON,
+        @SerializedName("material") MATERIAL;
 
         public static ItemCategory fromString(String s) {
             return ItemCategory.valueOf(s.toUpperCase());
