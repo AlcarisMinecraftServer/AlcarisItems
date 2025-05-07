@@ -2,6 +2,7 @@ package net.alcaris.plugin.items.models.data;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class FoodDataModel {
     private int nutrition;
     private float saturation;

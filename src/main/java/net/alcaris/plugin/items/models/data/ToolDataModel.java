@@ -8,6 +8,7 @@ import org.bukkit.inventory.meta.components.ToolComponent;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class ToolDataModel {
     private ToolType tool_type;
     private int max_damage;

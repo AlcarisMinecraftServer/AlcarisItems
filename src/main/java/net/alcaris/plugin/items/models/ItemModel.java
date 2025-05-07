@@ -2,6 +2,7 @@ package net.alcaris.plugin.items.models;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class ItemModel {
     private String id;
     private ItemCategory category;

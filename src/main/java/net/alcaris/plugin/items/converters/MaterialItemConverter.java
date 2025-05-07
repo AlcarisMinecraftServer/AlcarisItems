@@ -1,12 +1,8 @@
 package net.alcaris.plugin.items.converters;
 
 import net.alcaris.plugin.items.AlcarisItems;
-import net.alcaris.plugin.items.enums.TextureIcons;
 import net.alcaris.plugin.items.models.ItemModel;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.inventory.meta.ItemMeta;
 

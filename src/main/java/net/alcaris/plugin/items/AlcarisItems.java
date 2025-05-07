@@ -95,6 +95,7 @@ public final class AlcarisItems extends JavaPlugin {
         return instance;
     }
 
+    @SuppressWarnings("unused")
     public static ItemsRepository getRepository() {
         return repository;
     }
