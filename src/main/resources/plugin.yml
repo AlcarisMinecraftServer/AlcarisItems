@@ -2,6 +2,9 @@ name: AlcarisItems
 version: '1.0.0'
 main: net.alcaris.plugin.items.AlcarisItems
 api-version: '1.21'
+authors: [ 'Alcaris Team' ]
+description: Plugin to implement RPG-style items in Minecraft.
+website: https://www.alcaris.net
 
 commands:
   custom-item:
