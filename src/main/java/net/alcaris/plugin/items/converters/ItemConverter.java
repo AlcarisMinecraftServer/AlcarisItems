@@ -39,10 +39,10 @@ public class ItemConverter {
                 result = toolItemConverter.createItem(item, toolData, amount);
             }
             case "weapon" -> {
-                WeaponDataModel weaponData = gson.fromJson(gson.toJson(item.getData()),WeaponDataModel.class);
+                WeaponDataModel weaponData = gson.fromJson(gson.toJson(item.getData()), WeaponDataModel.class);
                 result = weaponItemConverter.createNewItem(item, weaponData, amount);
             }
-            case "material" -> result = materialItemConverter.createItem(item, amount);
+            case "material" -> result = materialItemConverter.createItem(item, null, amount);
         }
 
         return result;

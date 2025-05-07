@@ -87,7 +87,7 @@ public class InventoryUpdater {
                         WeaponDataModel weaponData = gson.fromJson(gson.toJson(model.getData()), WeaponDataModel.class);
                         newItem = updateWeaponItem(model, weaponData, item);
                     } else if ("material".equals(model.getCategory())) {
-                        newItem = materialConverter.createItem(model, item.getAmount());
+                        newItem = materialConverter.createItem(model, null, item.getAmount());
                     }
 
                     if (newItem != null) {
