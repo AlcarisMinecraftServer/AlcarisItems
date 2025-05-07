@@ -32,7 +32,12 @@ public class ToolDataModel {
     }
 
     public enum ToolType {
-        SWORD, PICKAXE, AXE, SHOVEL, HOE, CUSTOM
+        @SerializedName("sword") SWORD,
+        @SerializedName("pickaxe") PICKAXE,
+        @SerializedName("axe") AXE,
+        @SerializedName("shovel") SHOVEL,
+        @SerializedName("hoe") HOE,
+        @SerializedName("custom") CUSTOM
     }
 
     public static class Rules {
