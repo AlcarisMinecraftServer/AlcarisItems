@@ -37,13 +37,13 @@ public class FoodItemConverter extends  BaseItemConverter<FoodDataModel> {
                         .decoration(TextDecoration.ITALIC, false)
                         .decoration(TextDecoration.STRIKETHROUGH, true)
                         .append(
-                                Component.text("         ")
+                                Component.text("             ")
                                         .append(
                                                 Component.text("\uF822消費時\uF822")
                                                         .color(TextColor.fromHexString("#777777"))
                                                         .decoration(TextDecoration.STRIKETHROUGH, false)
                                                         .append(
-                                                                Component.text("         ")
+                                                                Component.text("             ")
                                                                         .decoration(TextDecoration.STRIKETHROUGH, true)
                                                         )
                                         )
@@ -51,14 +51,13 @@ public class FoodItemConverter extends  BaseItemConverter<FoodDataModel> {
         );
 
         // region 満腹度
-        StringBuilder result = new StringBuilder();
         int nutrition = food.getNutrition();
-        if (nutrition % 2 == 0) {
-            result.append(String.valueOf(TextureIcons.HUNGER_10.getUnicode()).repeat(Math.max(0, nutrition / 2)));
-        } else {
-            result.append(TextureIcons.HUNGER_05.getUnicode());
-            result.append(String.valueOf(TextureIcons.HUNGER_10.getUnicode()).repeat(Math.max(0, (nutrition - 1) / 2)));
-        }
+        int full = nutrition / 2;
+        boolean hasHalf = nutrition % 2 != 0;
+
+        StringBuilder result = new StringBuilder();
+        result.append(String.valueOf(TextureIcons.HUNGER_10.getUnicode()).repeat(full));
+        if (hasHalf) result.append(TextureIcons.HUNGER_05.getUnicode());
 
         lore.add(
                 Component.text("▸  \uF803")
