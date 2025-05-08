@@ -51,16 +51,17 @@ public class ToolItemConverter extends BaseItemConverter<ToolDataModel> {
     protected void setAdditionalMeta(ItemMeta meta, ToolDataModel tool) {
         if (meta instanceof Damageable damageable) {
             damageable.setMaxDamage(tool.getMaxDamage());
-            ToolComponent toolComponent = damageable.getTool();
-            toolComponent.setRules(new ArrayList<>());
-            toolComponent.setDefaultMiningSpeed(tool.getRules().getDefaultRule().getSpeed());
-            toolComponent.setDamagePerBlock(tool.getRules().getDefaultRule().getDamage());
-
-            for (ToolDataModel.Condition condition : tool.getRules().getConditions()) {
-                condition.applyToToolRule(toolComponent);
-            }
-
-            damageable.setTool(toolComponent);
         }
+
+        ToolComponent toolComponent = meta.getTool();
+        toolComponent.setRules(new ArrayList<>());
+        toolComponent.setDefaultMiningSpeed(tool.getRules().getDefaultRule().getSpeed());
+        toolComponent.setDamagePerBlock(tool.getRules().getDefaultRule().getDamage());
+
+        for (ToolDataModel.Condition condition : tool.getRules().getConditions()) {
+            condition.applyToToolRule(toolComponent);
+        }
+
+        meta.setTool(toolComponent);
     }
 }
