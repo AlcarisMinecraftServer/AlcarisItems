@@ -3,8 +3,6 @@ name: Build and Deploy to Nexus
 on:
   push:
     branches:
-      - main
-      - master
       - develop
     tags:
       - 'v*.*.*'
@@ -14,28 +12,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up JDK 17
+      - name: Set up Temurin JDK 17 (with Gradle cache)
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
+          cache: gradle
 
-      - name: Set Build Version and Nexus URL
-        id: set-version
+      - name: Compute build metadata
         run: |
-          if [[ "${GITHUB_REF}" == refs/heads/develop ]]; then
-            VERSION="1.0.${GITHUB_RUN_NUMBER}-SNAPSHOT"
-            NEXUS_URL=${{ secrets.NEXUS_SNAPSHOT_URL }}
-          elif [[ "${GITHUB_REF}" == refs/heads/main || "${GITHUB_REF}" == refs/heads/master ]]; then
-            VERSION="1.0.${GITHUB_RUN_NUMBER}"
-            NEXUS_URL=${{ secrets.NEXUS_RELEASE_URL }}
-          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/v}
-            NEXUS_URL=${{ secrets.NEXUS_RELEASE_URL }}
+          if [[ "$GITHUB_REF" == "refs/heads/develop" ]]; then
+            echo "BUILD_VERSION=1.0.${GITHUB_RUN_NUMBER}-SNAPSHOT" >> "$GITHUB_ENV"
+            echo "NEXUS_URL=${{ secrets.NEXUS_SNAPSHOT_URL }}"     >> "$GITHUB_ENV"
+          elif [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "BUILD_VERSION=${GITHUB_REF#refs/tags/v}"         >> "$GITHUB_ENV"
+            echo "NEXUS_URL=${{ secrets.NEXUS_RELEASE_URL }}"      >> "$GITHUB_ENV"
           fi
+          echo "Computed BUILD_VERSION=$BUILD_VERSION"
+          echo "Using NEXUS_URL=$NEXUS_URL"
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -48,13 +45,5 @@ jobs:
         env:
           NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
           NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-          NEXUS_URL: ${{ env.NEXUS_URL }}
-          BUILD_VERSION: ${{ env.BUILD_VERSION }}
-
-      - name: Create Git Tag for main/master
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        run: |
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions"
-          git tag v${{ env.BUILD_VERSION }}
-          git push origin v${{ env.BUILD_VERSION }}
+          NEXUS_URL:      ${{ env.NEXUS_URL }}
+          BUILD_VERSION:  ${{ env.BUILD_VERSION }}
