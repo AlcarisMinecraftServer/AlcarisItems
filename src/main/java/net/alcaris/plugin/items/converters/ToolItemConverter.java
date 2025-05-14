@@ -2,9 +2,9 @@ package net.alcaris.plugin.items.converters;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.alcaris.plugin.core.model.item.ItemBaseModel;
+import net.alcaris.plugin.core.model.item.ItemToolModel;
 import net.alcaris.plugin.items.AlcarisItems;
-import net.alcaris.plugin.items.models.ItemModel;
-import net.alcaris.plugin.items.models.data.ToolDataModel;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.inventory.meta.Damageable;
@@ -14,7 +14,7 @@ import org.bukkit.inventory.meta.components.ToolComponent;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ToolItemConverter extends BaseItemConverter<ToolDataModel> {
+public class ToolItemConverter extends BaseItemConverter<ItemToolModel> {
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public ToolItemConverter(AlcarisItems plugin) {
@@ -22,9 +22,9 @@ public class ToolItemConverter extends BaseItemConverter<ToolDataModel> {
     }
 
     @Override
-    protected Material getMaterial(ItemModel item) {
-        ToolDataModel toolData = gson.fromJson(gson.toJson(item.getData()), ToolDataModel.class);
-        ToolDataModel.ToolType toolType = toolData.getToolType();
+    protected Material getMaterial(ItemBaseModel item) {
+        ItemToolModel toolData = gson.fromJson(gson.toJson(item.getData()), ItemToolModel.class);
+        ItemToolModel.ToolType toolType = toolData.getToolType();
 
         return switch (toolType) {
             case SWORD -> Material.WOODEN_SWORD;
@@ -42,13 +42,13 @@ public class ToolItemConverter extends BaseItemConverter<ToolDataModel> {
     }
 
     @Override
-    protected void setLoreItemData(List<Component> lore, ItemModel item, ToolDataModel tool) {
+    protected void setLoreItemData(List<Component> lore, ItemBaseModel item, ItemToolModel tool) {
         // TODO: ツールのステータスを実装（耐久値、採掘可能）
     }
 
     @Override
     @SuppressWarnings("UnstableApiUsage")
-    protected void setAdditionalMeta(ItemMeta meta, ToolDataModel tool) {
+    protected void setAdditionalMeta(ItemMeta meta, ItemToolModel tool) {
         if (meta instanceof Damageable damageable) {
             damageable.setMaxDamage(tool.getMaxDamage());
         }
@@ -58,7 +58,7 @@ public class ToolItemConverter extends BaseItemConverter<ToolDataModel> {
         toolComponent.setDefaultMiningSpeed(tool.getRules().getDefaultRule().getSpeed());
         toolComponent.setDamagePerBlock(tool.getRules().getDefaultRule().getDamage());
 
-        for (ToolDataModel.Condition condition : tool.getRules().getConditions()) {
+        for (ItemToolModel.Condition condition : tool.getRules().getConditions()) {
             condition.applyToToolRule(toolComponent);
         }
 

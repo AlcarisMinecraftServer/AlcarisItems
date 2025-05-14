@@ -1,9 +1,9 @@
 package net.alcaris.plugin.items.converters;
 
+import net.alcaris.plugin.core.model.item.ItemBaseModel;
+import net.alcaris.plugin.core.model.item.ItemWeaponModel;
 import net.alcaris.plugin.items.AlcarisItems;
-import net.alcaris.plugin.items.models.ItemModel;
 import net.alcaris.plugin.items.enums.Colors;
-import net.alcaris.plugin.items.models.data.WeaponDataModel;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -76,7 +76,7 @@ public class WeaponItemConverter {
     }
 
 
-    public ItemStack createNewItem(ItemModel item, WeaponDataModel weapon, int amount) {
+    public ItemStack createNewItem(ItemBaseModel item, ItemWeaponModel weapon, int amount) {
 
         int damagePerformance = ((int) (Math.random() * 100) + (int) (Math.random() * 100)) / 2 + 1;
         int attackRangePerformance = ((int) (Math.random() * 100) + (int) (Math.random() * 100)) / 2 + 1;
@@ -85,10 +85,23 @@ public class WeaponItemConverter {
         int xpBonusPerformance = ((int) (Math.random() * 100) + (int) (Math.random() * 100)) / 2 + 1;
         int lootBonusPerformance = ((int) (Math.random() * 100) + (int) (Math.random() * 100)) / 2 + 1;
 
-        return commonSetting(item,weapon,amount,weapon.getType(),weapon.getRequirement(),0,damagePerformance,walkSpeedPerformance,attackRangePerformance,attackSpeedPerformance,xpBonusPerformance,lootBonusPerformance);
+        return commonSetting(
+                item,
+                weapon,
+                amount,
+                weapon.getType(),
+                weapon.getRequirement(),
+                0,
+                damagePerformance,
+                walkSpeedPerformance,
+                attackRangePerformance,
+                attackSpeedPerformance,
+                xpBonusPerformance,
+                lootBonusPerformance
+        );
     }
 
-    public ItemStack updateItem(ItemModel item, WeaponDataModel weapon, int amount, ItemStack oldItem) {
+    public ItemStack updateItem(ItemBaseModel item, ItemWeaponModel weapon, int amount, ItemStack oldItem) {
         ItemMeta oldMeta = oldItem.getItemMeta();
         PersistentDataContainer oldItemContainer = oldMeta.getPersistentDataContainer();
 
@@ -104,7 +117,7 @@ public class WeaponItemConverter {
     }
 
 
-    private ItemStack commonSetting(ItemModel item, WeaponDataModel weapon, int amount,String type,int requirement,int polishingCount,int damagePerformance,int walkSpeedPerformance,int attackRangePerformance, int attackSpeedPerformance,int xpBonusPerformance, int lootBonusPerformance) {
+    private ItemStack commonSetting(ItemBaseModel item, ItemWeaponModel weapon, int amount,String type,int requirement,int polishingCount,int damagePerformance,int walkSpeedPerformance,int attackRangePerformance, int attackSpeedPerformance,int xpBonusPerformance, int lootBonusPerformance) {
         ItemStack itemStack = new ItemStack(getToolMaterial(item.getId()), amount);
         Damageable itemMeta = (Damageable) itemStack.getItemMeta();
 

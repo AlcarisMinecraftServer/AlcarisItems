@@ -1,7 +1,7 @@
 package net.alcaris.plugin.items.converters;
 
+import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.items.AlcarisItems;
-import net.alcaris.plugin.items.models.ItemModel;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -15,7 +15,7 @@ public class MaterialItemConverter extends BaseItemConverter<Void> {
     }
 
     @Override
-    protected Material getMaterial(ItemModel item) {
+    protected Material getMaterial(ItemBaseModel item) {
         return Material.NAUTILUS_SHELL;
     }
 
@@ -25,7 +25,7 @@ public class MaterialItemConverter extends BaseItemConverter<Void> {
     }
 
     @Override
-    protected void setLoreItemData(List<Component> lore, ItemModel item, Void data) {
+    protected void setLoreItemData(List<Component> lore, ItemBaseModel item, Void data) {
         // TODO: ステータス追加予定
     }
 

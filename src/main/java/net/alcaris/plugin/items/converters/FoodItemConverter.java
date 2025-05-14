@@ -1,8 +1,9 @@
 package net.alcaris.plugin.items.converters;
 
+import net.alcaris.plugin.core.model.item.ItemBaseModel;
+import net.alcaris.plugin.core.model.item.ItemFoodModel;
 import net.alcaris.plugin.items.AlcarisItems;
-import net.alcaris.plugin.items.models.data.FoodDataModel;
-import net.alcaris.plugin.items.models.ItemModel;
+import net.alcaris.plugin.items.enums.EffectInfo;
 import net.alcaris.plugin.items.enums.TextureIcons;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -13,14 +14,26 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.components.FoodComponent;
 
 import java.util.List;
+import java.util.Locale;
 
-public class FoodItemConverter extends  BaseItemConverter<FoodDataModel> {
+public class FoodItemConverter extends BaseItemConverter<ItemFoodModel> {
     public FoodItemConverter(AlcarisItems plugin) {
         super(plugin);
     }
 
+    private String toRomanNumeral(int level) {
+        return switch (level) {
+            case 1 -> "I";
+            case 2 -> "II";
+            case 3 -> "III";
+            case 4 -> "IV";
+            case 5 -> "V";
+            default -> "Lv" + level;
+        };
+    }
+
     @Override
-    protected Material getMaterial(ItemModel item) {
+    protected Material getMaterial(ItemBaseModel item) {
         return Material.TROPICAL_FISH;
     }
 
@@ -30,7 +43,7 @@ public class FoodItemConverter extends  BaseItemConverter<FoodDataModel> {
     }
 
     @Override
-    protected void setLoreItemData(List<Component> lore, ItemModel item, FoodDataModel food) {
+    protected void setLoreItemData(List<Component> lore, ItemBaseModel item, ItemFoodModel food) {
         lore.add(
                 Component.text("")
                         .color(NamedTextColor.DARK_GRAY)
@@ -72,7 +85,25 @@ public class FoodItemConverter extends  BaseItemConverter<FoodDataModel> {
         // endregion
 
         // region エフェクト
-        // TODO: あとで
+        if (food.getEffects() != null && !food.getEffects().isEmpty()) {
+            for (ItemFoodModel.Effect effect : food.getEffects()) {
+                String id = effect.getEffect();
+                EffectInfo.Info info = EffectInfo.get(id);
+
+                int seconds = effect.getDuration();
+                int amplifier = effect.getAmplifier() + 1;
+                String timeString = String.format(Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
+
+                lore.add(
+                        Component.text("   \uF803").color(NamedTextColor.GRAY).append(
+                                Component.text(info.nameJa + " ").color(info.color)
+                                        .decoration(TextDecoration.ITALIC, false)
+                                        .append(Component.text(toRomanNumeral(amplifier)))
+                                        .append(Component.text("（" + timeString + "）"))
+                        )
+                );
+            }
+        }
         // endregion
 
         // region バフ
@@ -82,7 +113,7 @@ public class FoodItemConverter extends  BaseItemConverter<FoodDataModel> {
 
     @Override
     @SuppressWarnings("UnstableApiUsage")
-    protected void setAdditionalMeta(ItemMeta meta, FoodDataModel food) {
+    protected void setAdditionalMeta(ItemMeta meta, ItemFoodModel food) {
         FoodComponent foodComponent = meta.getFood();
         foodComponent.setNutrition(food.getNutrition());
         foodComponent.setSaturation(food.getSaturation());

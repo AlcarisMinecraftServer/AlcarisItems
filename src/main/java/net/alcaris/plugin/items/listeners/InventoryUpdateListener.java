@@ -1,6 +1,8 @@
 package net.alcaris.plugin.items.listeners;
 
-import net.alcaris.plugin.items.utils.InventoryUpdater;
+import net.alcaris.plugin.core.events.ItemRegistryReloadEvent;
+import net.alcaris.plugin.items.lib.InventoryUpdater;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,6 +15,11 @@ public class InventoryUpdateListener implements Listener {
 
     public InventoryUpdateListener(InventoryUpdater updater) {
         this.updater = updater;
+    }
+
+    @EventHandler
+    public void onItemReload(ItemRegistryReloadEvent event) {
+        updater.updateAllPlayersItems();
     }
 
     @EventHandler

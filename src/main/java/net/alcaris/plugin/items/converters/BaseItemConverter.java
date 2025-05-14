@@ -1,9 +1,9 @@
 package net.alcaris.plugin.items.converters;
 
+import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.items.AlcarisItems;
 import net.alcaris.plugin.items.enums.Colors;
 import net.alcaris.plugin.items.enums.TextureIcons;
-import net.alcaris.plugin.items.models.ItemModel;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -26,7 +26,7 @@ public abstract class BaseItemConverter<T> {
         this.plugin = plugin;
     }
 
-    public ItemStack createItem(ItemModel item, T data, int amount) {
+    public ItemStack createItem(ItemBaseModel item, T data, int amount) {
         ItemStack stack = new ItemStack(getMaterial(item), amount);
         ItemMeta meta = stack.getItemMeta();
 
@@ -51,11 +51,11 @@ public abstract class BaseItemConverter<T> {
 
     protected abstract void setAdditionalMeta(ItemMeta meta, T data);
 
-    protected abstract Material getMaterial(ItemModel item);
+    protected abstract Material getMaterial(ItemBaseModel item);
 
-    protected abstract void setLoreItemData(List<Component> lore, ItemModel item, T data);
+    protected abstract void setLoreItemData(List<Component> lore, ItemBaseModel item, T data);
 
-    protected void setDisplayName(ItemMeta meta, ItemModel item) {
+    protected void setDisplayName(ItemMeta meta, ItemBaseModel item) {
         meta.displayName(
                 plugin.miniMessage.deserialize(item.getName())
                         .color(TextColor.fromHexString(Colors.fromRarity(item.getRarity()).getHexCode()))
@@ -63,14 +63,14 @@ public abstract class BaseItemConverter<T> {
         );
     }
 
-    protected void setBasicMeta(ItemMeta meta, ItemModel item) {
+    protected void setBasicMeta(ItemMeta meta, ItemBaseModel item) {
         meta.setMaxStackSize(item.getMaxStack());
         if (item.getCustomModelData() != 0) {
             meta.setCustomModelData(item.getCustomModelData());
         }
     }
 
-    protected void setLoreDescription(List<Component> lore, ItemModel item) {
+    protected void setLoreDescription(List<Component> lore, ItemBaseModel item) {
         for (String text : item.getLore()) {
             lore.add(Component.text(text)
                     .color(TextColor.fromHexString("#D8D8D8"))
@@ -78,7 +78,7 @@ public abstract class BaseItemConverter<T> {
         }
     }
 
-    protected void setLoreMetaData(List<Component> lore, ItemModel item) {
+    protected void setLoreMetaData(List<Component> lore, ItemBaseModel item) {
         lore.add(Component.text("                                  ")
                 .color(NamedTextColor.DARK_GRAY)
                 .decoration(TextDecoration.STRIKETHROUGH, true));
@@ -89,7 +89,7 @@ public abstract class BaseItemConverter<T> {
                         .append(Component.text("【" + TextureIcons.fromRarity(item.getRarity()).getUnicode() + "】"))));
     }
 
-    protected void setIdentifiers(ItemMeta meta, ItemModel item) {
+    protected void setIdentifiers(ItemMeta meta, ItemBaseModel item) {
         PersistentDataContainer container = meta.getPersistentDataContainer();
         container.set(new NamespacedKey(plugin, "item_id"), PersistentDataType.STRING, item.getId());
         container.set(new NamespacedKey(plugin, "item_version"), PersistentDataType.LONG, item.getVersion());
