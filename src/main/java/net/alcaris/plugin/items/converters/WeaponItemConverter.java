@@ -1,5 +1,6 @@
 package net.alcaris.plugin.items.converters;
 
+import net.alcaris.plugin.core.AlcarisCore;
 import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.core.model.item.ItemWeaponModel;
 import net.alcaris.plugin.items.AlcarisItems;
@@ -15,15 +16,31 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 
 public class WeaponItemConverter {
     private final AlcarisItems plugin;
     private final Map<String, NamespacedKey> keys;
+    private final Gson gson = new Gson();
+
+    private static final int PERFORMANCE_INCREMENT = 5; // 固定値での上昇量
+
+    public enum UpgradeType {
+        ROLL_ALL,           // 全てをロール
+        FIXED_INCREMENT,    // 1つを固定値で5%あげる
+        ROLL_SPECIFIC,      // 1つを指定してロール
+        ROLL_AND_KEEP_HIGH  // 1つを前回のロールと比べて、高い方を採用
+    }
 
     public WeaponItemConverter(final AlcarisItems plugin) {
         this.plugin = plugin;
@@ -58,26 +75,36 @@ public class WeaponItemConverter {
     }
 
     public ItemStack createNewItem(ItemBaseModel item, ItemWeaponModel weapon, int amount) {
+        ItemStack itemStack = new ItemStack(getToolMaterial(item.getId()), amount);
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (itemMeta == null) return itemStack;
+
+        PersistentDataContainer container = itemMeta.getPersistentDataContainer();
+        int maxModification = (int) weapon.getMaxModification(); // doubleからintに変換
+
         return commonSetting(
             item,
             weapon,
             amount,
             weapon.getType(),
             weapon.getRequirement(),
-            weapon.getPolishingCount(),
-            0, // durability is not available in backward compatibility
-            calculatePerformance(),
-            calculatePerformance(),
-            calculatePerformance(),
-            calculatePerformance(),
-            calculatePerformance(),
-            calculatePerformance()
+            maxModification,
+            (int) weapon.getDurability(), // durabilityもdoubleからintに変換
+            0, // 初期性能値を0に設定
+            0,
+            0,
+            0,
+            0,
+            0
         );
     }
 
     public ItemStack updateItem(ItemBaseModel item, ItemWeaponModel weapon, int amount, ItemStack oldItem) {
         ItemMeta oldMeta = oldItem.getItemMeta();
+        if (oldMeta == null) return oldItem;
+
         PersistentDataContainer oldItemContainer = oldMeta.getPersistentDataContainer();
+        int maxModification = oldItemContainer.getOrDefault(keys.get("max_modification"), PersistentDataType.INTEGER, 0);
 
         return commonSetting(
             item,
@@ -85,7 +112,7 @@ public class WeaponItemConverter {
             amount,
             weapon.getType(),
             weapon.getRequirement(),
-            weapon.getPolishingCount(),
+            maxModification,
             0, // durability is not available in backward compatibility
             oldItemContainer.getOrDefault(keys.get("attack_damage_perf"), PersistentDataType.INTEGER, 0),
             oldItemContainer.getOrDefault(keys.get("movement_speed_perf"), PersistentDataType.INTEGER, 0),
@@ -97,7 +124,7 @@ public class WeaponItemConverter {
     }
 
     private ItemStack commonSetting(ItemBaseModel item, ItemWeaponModel weapon, int amount,
-                                  String type, int requirement, int polishingCount,
+                                  String type, int requirement, int maxModification,
                                   int durability, int damagePerformance, int walkSpeedPerformance,
                                   int attackRangePerformance, int attackSpeedPerformance,
                                   int xpBonusPerformance, int lootBonusPerformance) {
@@ -123,7 +150,7 @@ public class WeaponItemConverter {
         }
         
         // Set lore
-        List<Component> lore = createLore(item, requirement, polishingCount, weapon,
+        List<Component> lore = createLore(item, requirement, maxModification, weapon,
             finalDamage, finalAttackRange, finalAttackSpeed,
             finalWalkSpeed, finalXpBonus, finalLootBonus,
             damagePerformance, walkSpeedPerformance, attackRangePerformance,
@@ -131,7 +158,7 @@ public class WeaponItemConverter {
         itemMeta.lore(lore);
 
         // Set persistent data
-        setupPersistentData(itemMeta, item, type, requirement, polishingCount, durability,
+        setupPersistentData(itemMeta, item, type != null ? type : "default", requirement, maxModification, durability,
             finalDamage, damagePerformance, finalWalkSpeed, walkSpeedPerformance,
             finalAttackRange, attackRangePerformance, finalAttackSpeed, attackSpeedPerformance,
             finalXpBonus, xpBonusPerformance, finalLootBonus, lootBonusPerformance);
@@ -164,6 +191,11 @@ public class WeaponItemConverter {
                                      int attackRangePerformance, int attackSpeedPerformance,
                                      int xpBonusPerformance, int lootBonusPerformance) {
         List<Component> lore = new ArrayList<>();
+
+        // Add rarity at the top
+        lore.add(Component.text("【" + net.alcaris.plugin.items.enums.TextureIcons.fromRarity(item.getRarity()).getUnicode() + "】 " + "レアリティ: " + item.getRarity())
+            .color(TextColor.fromHexString(net.alcaris.plugin.items.enums.Colors.fromRarity(item.getRarity()).getHexCode()))
+            .decoration(TextDecoration.ITALIC, false));
         
         // Add base lore
         for (String text : item.getLore()) {
@@ -179,8 +211,17 @@ public class WeaponItemConverter {
 
         // Add requirement and modification info
         lore.add(buildInfoLine("必要レベル", String.valueOf(requirement)));
-        if (polishingCount > 0) {
-            lore.add(buildInfoLine("研磨回数", String.valueOf(polishingCount)));
+        lore.add(buildInfoLine("残り改造回数", String.valueOf(polishingCount)));
+
+        // Add durability if present
+        int durability = 0;
+        try {
+            durability = (int) ItemWeaponModel.class.getMethod("getDurability").invoke(weapon);
+        } catch (Exception e) {
+            // fallback for backward compatibility
+        }
+        if (durability > 0) {
+            lore.add(buildInfoLine("耐久値", String.valueOf(durability)));
         }
 
         // Add weapon stats
@@ -242,7 +283,7 @@ public class WeaponItemConverter {
         
         container.set(keys.get("item_id"), PersistentDataType.STRING, item.getId());
         container.set(keys.get("item_version"), PersistentDataType.LONG, item.getVersion());
-        container.set(keys.get("weapon_type"), PersistentDataType.STRING, weaponType);
+        container.set(keys.get("weapon_type"), PersistentDataType.STRING, weaponType != null ? weaponType : "default");
         container.set(keys.get("required_level"), PersistentDataType.INTEGER, requiredLevel);
         container.set(keys.get("max_modification"), PersistentDataType.INTEGER, maxModification);
         container.set(keys.get("durability"), PersistentDataType.INTEGER, durability);
@@ -259,5 +300,176 @@ public class WeaponItemConverter {
         container.set(keys.get("experience_bonus_perf"), PersistentDataType.INTEGER, xpBonusPerformance);
         container.set(keys.get("drop_rate_bonus"), PersistentDataType.INTEGER, finalLootBonus);
         container.set(keys.get("drop_rate_bonus_perf"), PersistentDataType.INTEGER, lootBonusPerformance);
+    }
+
+    public boolean upgradeWeaponPerformance(ItemStack itemStack, UpgradeType type, String specificStat) {
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (itemMeta == null) return false;
+
+        PersistentDataContainer container = itemMeta.getPersistentDataContainer();
+        
+        // 現在のmaxModificationを取得
+        int currentMaxModification = container.getOrDefault(keys.get("max_modification"), PersistentDataType.INTEGER, 0);
+
+        if (currentMaxModification <= 0) {
+            return false;
+        }
+
+        // アイテムIDを取得してItemBaseModelを取得
+        String itemId = container.getOrDefault(keys.get("item_id"), PersistentDataType.STRING, "");
+        Optional<ItemBaseModel> optModel = ((AlcarisCore) Bukkit.getPluginManager().getPlugin("AlcarisCore")).getItemRegistry().get(itemId);
+        if (optModel.isEmpty()) {
+            return false;
+        }
+        ItemBaseModel baseModel = optModel.get();
+        
+        // LinkedTreeMapをItemWeaponModelに変換
+        ItemWeaponModel weapon = gson.fromJson(gson.toJson(baseModel.getData()), ItemWeaponModel.class);
+        if (weapon == null) {
+            return false;
+        }
+
+        // 現在の性能値を取得
+        int damagePerf = container.getOrDefault(keys.get("attack_damage_perf"), PersistentDataType.INTEGER, 0);
+        int walkSpeedPerf = container.getOrDefault(keys.get("movement_speed_perf"), PersistentDataType.INTEGER, 0);
+        int attackRangePerf = container.getOrDefault(keys.get("attack_range_perf"), PersistentDataType.INTEGER, 0);
+        int attackSpeedPerf = container.getOrDefault(keys.get("attack_speed_perf"), PersistentDataType.INTEGER, 0);
+        int xpBonusPerf = container.getOrDefault(keys.get("experience_bonus_perf"), PersistentDataType.INTEGER, 0);
+        int lootBonusPerf = container.getOrDefault(keys.get("drop_rate_bonus_perf"), PersistentDataType.INTEGER, 0);
+
+        // アップグレードタイプに応じて処理
+        switch (type) {
+            case ROLL_ALL:
+                damagePerf = calculatePerformance();
+                walkSpeedPerf = calculatePerformance();
+                attackRangePerf = calculatePerformance();
+                attackSpeedPerf = calculatePerformance();
+                xpBonusPerf = calculatePerformance();
+                lootBonusPerf = calculatePerformance();
+                break;
+
+            case FIXED_INCREMENT:
+                if (specificStat != null) {
+                    switch (specificStat.toLowerCase()) {
+                        case "damage" -> damagePerf = Math.min(100, damagePerf + PERFORMANCE_INCREMENT);
+                        case "walkspeed" -> walkSpeedPerf = Math.min(100, walkSpeedPerf + PERFORMANCE_INCREMENT);
+                        case "attackrange" -> attackRangePerf = Math.min(100, attackRangePerf + PERFORMANCE_INCREMENT);
+                        case "attackspeed" -> attackSpeedPerf = Math.min(100, attackSpeedPerf + PERFORMANCE_INCREMENT);
+                        case "xpbonus" -> xpBonusPerf = Math.min(100, xpBonusPerf + PERFORMANCE_INCREMENT);
+                        case "lootbonus" -> lootBonusPerf = Math.min(100, lootBonusPerf + PERFORMANCE_INCREMENT);
+                    }
+                }
+                break;
+
+            case ROLL_SPECIFIC:
+                if (specificStat != null) {
+                    switch (specificStat.toLowerCase()) {
+                        case "damage" -> damagePerf = calculatePerformance();
+                        case "walkspeed" -> walkSpeedPerf = calculatePerformance();
+                        case "attackrange" -> attackRangePerf = calculatePerformance();
+                        case "attackspeed" -> attackSpeedPerf = calculatePerformance();
+                        case "xpbonus" -> xpBonusPerf = calculatePerformance();
+                        case "lootbonus" -> lootBonusPerf = calculatePerformance();
+                    }
+                }
+                break;
+
+            case ROLL_AND_KEEP_HIGH:
+                if (specificStat != null) {
+                    int newRoll = calculatePerformance();
+                    switch (specificStat.toLowerCase()) {
+                        case "damage" -> damagePerf = Math.max(damagePerf, newRoll);
+                        case "walkspeed" -> walkSpeedPerf = Math.max(walkSpeedPerf, newRoll);
+                        case "attackrange" -> attackRangePerf = Math.max(attackRangePerf, newRoll);
+                        case "attackspeed" -> attackSpeedPerf = Math.max(attackSpeedPerf, newRoll);
+                        case "xpbonus" -> xpBonusPerf = Math.max(xpBonusPerf, newRoll);
+                        case "lootbonus" -> lootBonusPerf = Math.max(lootBonusPerf, newRoll);
+                    }
+                }
+                break;
+        }
+
+        // 性能値を更新
+        container.set(keys.get("attack_damage_perf"), PersistentDataType.INTEGER, damagePerf);
+        container.set(keys.get("movement_speed_perf"), PersistentDataType.INTEGER, walkSpeedPerf);
+        container.set(keys.get("attack_range_perf"), PersistentDataType.INTEGER, attackRangePerf);
+        container.set(keys.get("attack_speed_perf"), PersistentDataType.INTEGER, attackSpeedPerf);
+        container.set(keys.get("experience_bonus_perf"), PersistentDataType.INTEGER, xpBonusPerf);
+        container.set(keys.get("drop_rate_bonus_perf"), PersistentDataType.INTEGER, lootBonusPerf);
+
+        // maxModificationを減らす
+        int newMaxModification = currentMaxModification - 1;
+        container.set(keys.get("max_modification"), PersistentDataType.INTEGER, newMaxModification);
+
+        // アイテムのステータスを再計算（基礎値はItemWeaponModelから取得）
+        double finalDamage = calculateFinalStat(weapon.getDamage(), damagePerf);
+        double finalAttackRange = calculateFinalStat(weapon.getAttackRange(), attackRangePerf);
+        double finalAttackSpeed = calculateFinalStat(weapon.getAttackSpeed(), attackSpeedPerf);
+        int finalWalkSpeed = (int) calculateFinalStat(weapon.getWalkSpeed(), walkSpeedPerf);
+        int finalXpBonus = (int) calculateFinalStat(weapon.getXpBonus(), xpBonusPerf);
+        int finalLootBonus = (int) calculateFinalStat(weapon.getLootBonus(), lootBonusPerf);
+
+        // 最終ステータスを更新
+        container.set(keys.get("attack_damage"), PersistentDataType.DOUBLE, finalDamage);
+        container.set(keys.get("attack_range"), PersistentDataType.DOUBLE, finalAttackRange);
+        container.set(keys.get("attack_speed"), PersistentDataType.DOUBLE, finalAttackSpeed);
+        container.set(keys.get("movement_speed"), PersistentDataType.INTEGER, finalWalkSpeed);
+        container.set(keys.get("experience_bonus"), PersistentDataType.INTEGER, finalXpBonus);
+        container.set(keys.get("drop_rate_bonus"), PersistentDataType.INTEGER, finalLootBonus);
+
+        // アイテムの説明文を更新
+        long version = container.getOrDefault(keys.get("item_version"), PersistentDataType.LONG, 0L);
+        String weaponType = container.getOrDefault(keys.get("weapon_type"), PersistentDataType.STRING, "");
+        int requiredLevel = container.getOrDefault(keys.get("required_level"), PersistentDataType.INTEGER, 0);
+
+        // 説明文の作成
+        List<Component> lore = new ArrayList<>();
+        
+        // レアリティの取得（既存のアイテムから）
+        int rarity = 1; // デフォルト値を1に設定
+        if (itemMeta.hasLore() && itemMeta.lore() != null && !itemMeta.lore().isEmpty()) {
+            Component firstLine = itemMeta.lore().get(0);
+            String firstLineText = firstLine.toString();
+            if (firstLineText.contains("レアリティ: ")) {
+                try {
+                    String rarityStr = firstLineText.split("レアリティ: ")[1].trim();
+                    rarity = Integer.parseInt(rarityStr);
+                } catch (NumberFormatException e) {
+                    // デフォルト値を使用
+                }
+            }
+        }
+
+        // 基本情報の追加
+        lore.add(Component.text("【" + net.alcaris.plugin.items.enums.TextureIcons.fromRarity(rarity).getUnicode() + "】 " + "レアリティ: " + rarity)
+            .color(TextColor.fromHexString(net.alcaris.plugin.items.enums.Colors.fromRarity(rarity).getHexCode()))
+            .decoration(TextDecoration.ITALIC, false));
+
+        // 区切り線
+        lore.add(Component.text("                          ")
+            .color(NamedTextColor.DARK_GRAY)
+            .decoration(TextDecoration.STRIKETHROUGH, true));
+
+        // 必要レベルと改造回数の表示
+        lore.add(buildInfoLine("必要レベル", String.valueOf(requiredLevel)));
+        lore.add(buildInfoLine("残り改造回数", String.valueOf(newMaxModification)));
+
+        // ステータスの表示
+        if (weapon.getDamage() != 0)
+            lore.add(buildStatLine("攻撃力", String.valueOf(finalDamage), String.valueOf(damagePerf)));
+        if (weapon.getAttackRange() != 0)
+            lore.add(buildStatLine("攻撃距離", String.valueOf(finalAttackRange), String.valueOf(attackRangePerf)));
+        if (weapon.getAttackSpeed() != 0)
+            lore.add(buildStatLine("攻撃速度", String.valueOf(finalAttackSpeed), String.valueOf(attackSpeedPerf)));
+        if (weapon.getWalkSpeed() != 0)
+            lore.add(buildStatLine("移動速度", String.valueOf(finalWalkSpeed), String.valueOf(walkSpeedPerf)));
+        if (weapon.getXpBonus() != 0)
+            lore.add(buildStatLine("経験値ボーナス", String.valueOf(finalXpBonus), String.valueOf(xpBonusPerf)));
+        if (weapon.getLootBonus() != 0)
+            lore.add(buildStatLine("ドロップ率ボーナス", String.valueOf(finalLootBonus), String.valueOf(lootBonusPerf)));
+
+        itemMeta.lore(lore);
+        itemStack.setItemMeta(itemMeta);
+        return true;
     }
 }

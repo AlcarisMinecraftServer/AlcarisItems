@@ -23,6 +23,7 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
     private final AlcarisItems plugin;
     private final ItemRegistry itemRegistry;
     private final ItemConverter itemConverter;
+    private final WeaponItemConverter weaponItemConverter;
 
     public CustomItemCommand(
             AlcarisItems plugin,
@@ -36,8 +37,8 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
                 Bukkit.getPluginManager().getPlugin("AlcarisCore"),
                 "AlcarisCore がロードされていません"
         )).getItemRegistry();
-
-        this.itemConverter = new ItemConverter(foodItemConverter, toolItemConverter, materialItemConverter,weaponItemConverter);
+        this.weaponItemConverter = weaponItemConverter;
+        this.itemConverter = new ItemConverter(foodItemConverter, toolItemConverter, materialItemConverter, weaponItemConverter);
     }
 
     @Override
@@ -49,30 +50,40 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
         final String input = args.length > 0 ? args[args.length - 1].toLowerCase() : "";
         List<String> completions = new ArrayList<>();
 
-        switch (args.length) {
-            case 1 -> Stream.of("give")
+        if (args.length == 1) {
+            Stream.of("give", "upgrade")
                     .filter(s -> s.startsWith(input))
                     .forEach(completions::add);
-            case 2 -> {
-                if (args[0].equalsIgnoreCase("give")) {
-                    Bukkit.getOnlinePlayers().stream()
-                            .map(Player::getName)
-                            .filter(n -> n.toLowerCase().startsWith(input))
-                            .forEach(completions::add);
-                }
+        } else if (args.length == 2) {
+            if (args[0].equalsIgnoreCase("give")) {
+                Bukkit.getOnlinePlayers().stream()
+                        .map(Player::getName)
+                        .filter(n -> n.toLowerCase().startsWith(input))
+                        .forEach(completions::add);
+            } else if (args[0].equalsIgnoreCase("upgrade")) {
+                Stream.of("weapon")
+                        .filter(s -> s.startsWith(input))
+                        .forEach(completions::add);
             }
-            case 3 -> {
-                if (args[0].equalsIgnoreCase("give")) {
-                    itemRegistry.getAll().stream()
-                            .map(ItemBaseModel::getId)
-                            .filter(id -> id.toLowerCase().startsWith(input))
-                            .forEach(completions::add);
-                }
+        } else if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("give")) {
+                itemRegistry.getAll().stream()
+                        .map(ItemBaseModel::getId)
+                        .filter(id -> id.toLowerCase().startsWith(input))
+                        .forEach(completions::add);
+            } else if (args[0].equalsIgnoreCase("upgrade") && args[1].equalsIgnoreCase("weapon")) {
+                Stream.of(WeaponItemConverter.UpgradeType.values())
+                        .map(Enum::name)
+                        .filter(s -> s.toLowerCase().startsWith(input))
+                        .forEach(completions::add);
             }
-            case 4 -> {
-                if (args[0].equalsIgnoreCase("give")) {
-                    completions.add("<amount>");
-                }
+        } else if (args.length == 4) {
+            if (args[0].equalsIgnoreCase("give")) {
+                completions.add("<amount>");
+            } else if (args[0].equalsIgnoreCase("upgrade") && args[1].equalsIgnoreCase("weapon")) {
+                Stream.of("damage", "walkSpeed", "attackRange", "attackSpeed", "xpBonus", "lootBonus")
+                        .filter(s -> s.toLowerCase().startsWith(input))
+                        .forEach(completions::add);
             }
         }
 
@@ -84,16 +95,31 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
             @NotNull CommandSender sender, @NotNull Command command,
             @NotNull String label, String[] args
     ) {
-        if (args.length < 3 || !args[0].equalsIgnoreCase("give")) {
+        if (args.length < 1) {
             sendUsage(sender);
             return true;
+        }
+
+        switch (args[0].toLowerCase()) {
+            case "give" -> handleGiveCommand(sender, args);
+            case "upgrade" -> handleUpgradeCommand(sender, args);
+            default -> sendUsage(sender);
+        }
+
+        return true;
+    }
+
+    private void handleGiveCommand(CommandSender sender, String[] args) {
+        if (args.length < 3) {
+            sendUsage(sender);
+            return;
         }
 
         Player target = Bukkit.getPlayerExact(args[1]);
         if (target == null) {
             sender.sendMessage(Component.text("プレイヤーが見つかりません。")
                     .color(NamedTextColor.RED));
-            return true;
+            return;
         }
 
         String itemId = args[2];
@@ -102,7 +128,7 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
         if (optModel.isEmpty()) {
             sender.sendMessage(Component.text("アイテム ID が無効です: " + itemId)
                     .color(NamedTextColor.RED));
-            return true;
+            return;
         }
 
         int amount = 1;
@@ -119,7 +145,7 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
         if (stack == null) {
             sender.sendMessage(Component.text("ItemStack の生成に失敗しました。")
                     .color(NamedTextColor.RED));
-            return true;
+            return;
         }
 
         target.getInventory().addItem(stack);
@@ -127,8 +153,62 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
                 .append(plugin.prefix)
                 .append(Component.text("アイテムを付与しました: " + itemId + " ×" + amount)
                         .color(NamedTextColor.GREEN)));
+    }
 
-        return true;
+    private void handleUpgradeCommand(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("このコマンドはプレイヤーのみ使用できます。")
+                    .color(NamedTextColor.RED));
+            return;
+        }
+
+        if (args.length < 3) {
+            sendUpgradeUsage(sender);
+            return;
+        }
+
+        if (!args[1].equalsIgnoreCase("weapon")) {
+            sendUpgradeUsage(sender);
+            return;
+        }
+
+        try {
+            String upgradeTypeStr = args[2].toUpperCase();
+            WeaponItemConverter.UpgradeType upgradeType;
+            try {
+                upgradeType = WeaponItemConverter.UpgradeType.valueOf(upgradeTypeStr);
+            } catch (IllegalArgumentException e) {
+                player.sendMessage(Component.text("無効なアップグレードタイプです。使用可能なタイプ: ROLL_ALL, FIXED_INCREMENT, ROLL_SPECIFIC, ROLL_AND_KEEP_HIGH")
+                        .color(NamedTextColor.RED));
+                return;
+            }
+
+            String specificStat = args.length >= 4 ? args[3].toLowerCase() : null;
+
+            ItemStack heldItem = player.getInventory().getItemInMainHand();
+            if (heldItem.getType().isAir()) {
+                player.sendMessage(Component.text("アイテムを手に持ってください。")
+                        .color(NamedTextColor.RED));
+                return;
+            }
+
+            boolean success = weaponItemConverter.upgradeWeaponPerformance(heldItem, upgradeType, specificStat);
+            if (success) {
+                player.sendMessage(Component.text()
+                        .append(plugin.prefix)
+                        .append(Component.text("武器の性能値をアップグレードしました。")
+                                .color(NamedTextColor.GREEN)));
+            } else {
+                player.sendMessage(Component.text()
+                        .append(plugin.prefix)
+                        .append(Component.text("武器の性能値アップグレードに失敗しました。最大改造回数を確認してください。")
+                                .color(NamedTextColor.RED)));
+            }
+        } catch (Exception e) {
+            player.sendMessage(Component.text("コマンドの実行中にエラーが発生しました: " + e.getMessage())
+                    .color(NamedTextColor.RED));
+            sendUpgradeUsage(sender);
+        }
     }
 
     private void sendUsage(CommandSender sender) {
@@ -136,5 +216,16 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
                 .append(plugin.prefix)
                 .append(Component.text("使用法: /custom-item give <player> <id> [amount]")
                         .color(NamedTextColor.RED)));
+    }
+
+    private void sendUpgradeUsage(CommandSender sender) {
+        sender.sendMessage(Component.text()
+                .append(plugin.prefix)
+                .append(Component.text("使用法: /custom-item upgrade weapon <UpgradeType> [specificStat]")
+                        .color(NamedTextColor.RED)));
+        sender.sendMessage(Component.text("UpgradeType: ROLL_ALL, FIXED_INCREMENT, ROLL_SPECIFIC, ROLL_AND_KEEP_HIGH")
+                .color(NamedTextColor.YELLOW));
+        sender.sendMessage(Component.text("specificStat: damage, walkSpeed, attackRange, attackSpeed, xpBonus, lootBonus")
+                .color(NamedTextColor.YELLOW));
     }
 }
