@@ -251,6 +251,9 @@ public class WeaponItemConverter {
     }
 
     private Component buildStatLine(String label, String value, String percent) {
+        int performance = Integer.parseInt(percent);
+        TextColor percentColor = getPerformanceColor(performance);
+        
         return Component.text(label + " : ")
             .color(NamedTextColor.WHITE)
             .decoration(TextDecoration.ITALIC, false)
@@ -261,14 +264,40 @@ public class WeaponItemConverter {
                 .color(NamedTextColor.WHITE)
                 .decoration(TextDecoration.ITALIC, false))
             .append(Component.text(percent)
-                .color(NamedTextColor.GREEN)
+                .color(percentColor)
                 .decoration(TextDecoration.ITALIC, false))
             .append(Component.text("%")
-                .color(NamedTextColor.GREEN)
+                .color(percentColor)
                 .decoration(TextDecoration.ITALIC, false))
             .append(Component.text(")")
                 .color(NamedTextColor.WHITE)
                 .decoration(TextDecoration.ITALIC, false));
+    }
+
+    private TextColor getPerformanceColor(int performance) {
+        if (performance >= 100) {
+            return TextColor.fromHexString("#00FFFF"); // aqua
+        } else if (performance >= 90) {
+            return TextColor.fromHexString("#32CD32"); // ライムグリーン
+        } else if (performance >= 80) {
+            return TextColor.fromHexString("#00FF00"); // 明るい緑
+        } else if (performance >= 70) {
+            return TextColor.fromHexString("#9ACD32"); // イエローグリーン
+        } else if (performance >= 60) {
+            return TextColor.fromHexString("#ADFF2F"); // グリーンイエロー
+        } else if (performance >= 50) {
+            return TextColor.fromHexString("#FFFF00"); // 黄色
+        } else if (performance >= 40) {
+            return TextColor.fromHexString("#FFD700"); // ゴールド
+        } else if (performance >= 30) {
+            return TextColor.fromHexString("#FFA500"); // オレンジ
+        } else if (performance >= 20) {
+            return TextColor.fromHexString("#FF8C00"); // ダークオレンジ
+        } else if (performance >= 10) {
+            return TextColor.fromHexString("#FF4500"); // オレンジレッド
+        } else {
+            return TextColor.fromHexString("#FF0000"); // 赤
+        }
     }
 
     private void setupPersistentData(ItemMeta itemMeta, ItemBaseModel item, String weaponType,
