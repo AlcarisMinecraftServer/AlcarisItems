@@ -5,7 +5,6 @@ import net.alcaris.plugin.core.registry.ItemRegistry;
 import net.alcaris.plugin.items.commands.CustomItemCommand;
 import net.alcaris.plugin.items.converters.*;
 import net.alcaris.plugin.items.listeners.InventoryUpdateListener;
-import net.alcaris.plugin.items.listeners.WeaponDurabilityListener;
 import net.alcaris.plugin.items.lib.ItemsRepository;
 import net.alcaris.plugin.items.lib.InventoryUpdater;
 import net.kyori.adventure.text.Component;
@@ -55,9 +54,6 @@ public final class AlcarisItems extends JavaPlugin {
                         weaponItemConverter
                 )
         );
-
-        // Register listeners
-        getServer().getPluginManager().registerEvents(new WeaponDurabilityListener(this), this);
     }
 
     public static AlcarisItems getInstance() {
