@@ -62,7 +62,7 @@ public class WeaponItemConverter {
             "item_id", "item_version", "weapon_type", "required_level", 
             "max_modification", "durability"
         };
-        
+
         for (String name : basicKeys) {
             keyMap.put(name, new NamespacedKey(plugin, name));
         }
@@ -97,7 +97,7 @@ public class WeaponItemConverter {
         
         // 初期性能値を0に設定したWeaponStatDataを作成
         WeaponStatData statData = new WeaponStatData();
-        
+
         return commonSetting(
             item,
             weapon,
@@ -244,8 +244,15 @@ public class WeaponItemConverter {
             double finalValue = statData.getFinalValue(stat);
             int performance = statData.getPerformanceValue(stat);
             if (finalValue > 0) {
-                String displayValue = stat == WeaponStats.WALK_SPEED ? 
-                    String.valueOf((int)finalValue) : String.valueOf(finalValue);
+                String displayValue;
+                if (stat == WeaponStats.WALK_SPEED || stat == WeaponStats.MP || stat == WeaponStats.MPR || 
+                    stat == WeaponStats.ATK || stat == WeaponStats.DEF || stat == WeaponStats.MDF || 
+                    stat == WeaponStats.CRT || stat == WeaponStats.CRD || stat == WeaponStats.SPD || 
+                    stat == WeaponStats.LUK) {
+                    displayValue = String.valueOf((int)finalValue);
+                } else {
+                    displayValue = String.valueOf(finalValue);
+                }
                 lore.add(buildStatLine(stat.getDisplayName(), displayValue, String.valueOf(performance)));
             }
         }
@@ -327,7 +334,10 @@ public class WeaponItemConverter {
         // WeaponStatsを使用してデータを設定
         for (WeaponStats stat : WeaponStats.values()) {
             // 最終値を保存
-            if (stat == WeaponStats.WALK_SPEED) {
+            if (stat == WeaponStats.WALK_SPEED || stat == WeaponStats.MP || stat == WeaponStats.MPR || 
+                stat == WeaponStats.ATK || stat == WeaponStats.DEF || stat == WeaponStats.MDF || 
+                stat == WeaponStats.CRT || stat == WeaponStats.CRD || stat == WeaponStats.SPD || 
+                stat == WeaponStats.LUK) {
                 container.set(keys.get(stat.getValueKey()), PersistentDataType.INTEGER, (int)statData.getFinalValue(stat));
             } else {
                 container.set(keys.get(stat.getValueKey()), PersistentDataType.DOUBLE, statData.getFinalValue(stat));
@@ -465,7 +475,7 @@ public class WeaponItemConverter {
                 if (specificStat != null) {
                     WeaponStats targetStat = WeaponStats.fromKey(specificStat);
                     if (targetStat != null) {
-                        int newRoll = calculatePerformance();
+                    int newRoll = calculatePerformance();
                         int currentPerf = statData.getPerformanceValue(targetStat);
                         statData.setPerformanceValue(targetStat, Math.max(currentPerf, newRoll));
                     }
@@ -493,7 +503,10 @@ public class WeaponItemConverter {
         // 最終ステータスを更新
         for (WeaponStats stat : WeaponStats.values()) {
             // 最終値を保存
-            if (stat == WeaponStats.WALK_SPEED) {
+            if (stat == WeaponStats.WALK_SPEED || stat == WeaponStats.MP || stat == WeaponStats.MPR || 
+                stat == WeaponStats.ATK || stat == WeaponStats.DEF || stat == WeaponStats.MDF || 
+                stat == WeaponStats.CRT || stat == WeaponStats.CRD || stat == WeaponStats.SPD || 
+                stat == WeaponStats.LUK) {
                 container.set(keys.get(stat.getValueKey()), PersistentDataType.INTEGER, (int)statData.getFinalValue(stat));
             } else {
                 container.set(keys.get(stat.getValueKey()), PersistentDataType.DOUBLE, statData.getFinalValue(stat));
@@ -551,8 +564,15 @@ public class WeaponItemConverter {
             double finalValue = statData.getFinalValue(stat);
             int performance = statData.getPerformanceValue(stat);
             if (finalValue > 0) {
-                String displayValue = stat == WeaponStats.WALK_SPEED ? 
-                    String.valueOf((int)finalValue) : String.valueOf(finalValue);
+                String displayValue;
+                if (stat == WeaponStats.WALK_SPEED || stat == WeaponStats.MP || stat == WeaponStats.MPR || 
+                    stat == WeaponStats.ATK || stat == WeaponStats.DEF || stat == WeaponStats.MDF || 
+                    stat == WeaponStats.CRT || stat == WeaponStats.CRD || stat == WeaponStats.SPD || 
+                    stat == WeaponStats.LUK) {
+                    displayValue = String.valueOf((int)finalValue);
+                } else {
+                    displayValue = String.valueOf(finalValue);
+                }
                 lore.add(buildStatLine(stat.getDisplayName(), displayValue, String.valueOf(performance)));
             }
         }

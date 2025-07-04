@@ -10,7 +10,16 @@ public enum WeaponStats {
     DAMAGE("damage", "攻撃力", "attack_damage", "attack_damage_perf", ItemWeaponModel::getDamage),
     WALK_SPEED("walkspeed", "移動速度", "movement_speed", "movement_speed_perf", ItemWeaponModel::getWalkSpeed),
     ATTACK_RANGE("attackrange", "攻撃距離", "attack_range", "attack_range_perf", ItemWeaponModel::getAttackRange),
-    ATTACK_SPEED("attackspeed", "攻撃速度", "attack_speed", "attack_speed_perf", ItemWeaponModel::getAttackSpeed);
+    ATTACK_SPEED("attackspeed", "攻撃速度", "attack_speed", "attack_speed_perf", ItemWeaponModel::getAttackSpeed),
+    MP("mp", "MP", "mp", "mp_perf", ItemWeaponModel::getMp),
+    MPR("mpr", "MPR", "mpr", "mpr_perf", ItemWeaponModel::getMpr),
+    ATK("atk", "ATK", "atk", "atk_perf", ItemWeaponModel::getAtk),
+    DEF("def", "DEF", "def", "def_perf", ItemWeaponModel::getDef),
+    MDF("mdf", "MDF", "mdf", "mdf_perf", ItemWeaponModel::getMdf),
+    CRT("crt", "CRT", "crt", "crt_perf", ItemWeaponModel::getCrt),
+    CRD("crd", "CRD", "crd", "crd_perf", ItemWeaponModel::getCrd),
+    SPD("spd", "SPD", "spd", "spd_perf", ItemWeaponModel::getSpd),
+    LUK("luk", "LUK", "luk", "luk_perf", ItemWeaponModel::getLuk);
 
     private final String key;
     private final String displayName;
