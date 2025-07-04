@@ -7,12 +7,14 @@ import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.core.model.item.ItemFoodModel;
 import net.alcaris.plugin.core.model.item.ItemToolModel;
 import net.alcaris.plugin.core.model.item.ItemWeaponModel;
+import net.alcaris.plugin.core.model.item.ItemArmorModel;
 import net.alcaris.plugin.core.registry.ItemRegistry;
 import net.alcaris.plugin.items.AlcarisItems;
 import net.alcaris.plugin.items.converters.FoodItemConverter;
 import net.alcaris.plugin.items.converters.MaterialItemConverter;
 import net.alcaris.plugin.items.converters.ToolItemConverter;
 import net.alcaris.plugin.items.converters.WeaponItemConverter;
+import net.alcaris.plugin.items.converters.ArmorItemConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -37,6 +39,7 @@ public class InventoryUpdater {
     private final ToolItemConverter toolConverter;
     private final MaterialItemConverter materialConverter;
     private final WeaponItemConverter weaponConverter;
+    private final ArmorItemConverter armorConverter;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     private final NamespacedKey keyId;
@@ -47,13 +50,15 @@ public class InventoryUpdater {
             FoodItemConverter foodConverter,
             ToolItemConverter toolConverter,
             MaterialItemConverter materialConverter,
-            WeaponItemConverter weaponItemConverter
+            WeaponItemConverter weaponItemConverter,
+            ArmorItemConverter armorConverter
     ) {
         this.plugin = plugin;
         this.foodConverter = foodConverter;
         this.toolConverter = toolConverter;
         this.materialConverter = materialConverter;
         this.weaponConverter = weaponItemConverter;
+        this.armorConverter = armorConverter;
 
         this.keyId = new NamespacedKey(plugin, "item_id");
         this.keyVersion = new NamespacedKey(plugin, "item_version");
@@ -115,7 +120,11 @@ public class InventoryUpdater {
                         gson.toJson(model.getData()), ItemToolModel.class);
                 yield copyDamage(toolConverter.createItem(model, tool, oldStack.getAmount()), oldStack);
             }
-            case ARMOR -> null;
+            case ARMOR -> {
+                ItemArmorModel armor = gson.fromJson(
+                        gson.toJson(model.getData()), ItemArmorModel.class);
+                yield copyDamage(armorConverter.updateItem(model, armor, oldStack.getAmount(), oldStack), oldStack);
+            }
             case WEAPON -> {
                 ItemWeaponModel weapon = gson.fromJson(
                         gson.toJson(model.getData()), ItemWeaponModel.class);

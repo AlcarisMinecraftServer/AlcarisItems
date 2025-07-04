@@ -33,10 +33,11 @@ public final class AlcarisItems extends JavaPlugin {
         ToolItemConverter toolItemConverter = new ToolItemConverter(this);
         MaterialItemConverter materialItemConverter = new MaterialItemConverter(this);
         WeaponItemConverter weaponItemConverter = new WeaponItemConverter(this);
+        ArmorItemConverter armorItemConverter = new ArmorItemConverter(this);
 
-        itemConverter = new ItemConverter(foodItemConverter, toolItemConverter, materialItemConverter,weaponItemConverter);
+        itemConverter = new ItemConverter(foodItemConverter, toolItemConverter, materialItemConverter, weaponItemConverter, armorItemConverter);
 
-        InventoryUpdater inventoryUpdater = new InventoryUpdater(this, foodItemConverter, toolItemConverter, materialItemConverter, weaponItemConverter);
+        InventoryUpdater inventoryUpdater = new InventoryUpdater(this, foodItemConverter, toolItemConverter, materialItemConverter, weaponItemConverter, armorItemConverter);
 
         // Listener
         getServer().getPluginManager().registerEvents(new InventoryUpdateListener(inventoryUpdater), this);
@@ -51,7 +52,8 @@ public final class AlcarisItems extends JavaPlugin {
                         foodItemConverter,
                         toolItemConverter,
                         materialItemConverter,
-                        weaponItemConverter
+                        weaponItemConverter,
+                        armorItemConverter
                 )
         );
     }

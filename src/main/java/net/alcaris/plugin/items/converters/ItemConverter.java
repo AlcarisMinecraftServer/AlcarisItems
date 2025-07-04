@@ -6,6 +6,7 @@ import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.core.model.item.ItemFoodModel;
 import net.alcaris.plugin.core.model.item.ItemToolModel;
 import net.alcaris.plugin.core.model.item.ItemWeaponModel;
+import net.alcaris.plugin.core.model.item.ItemArmorModel;
 import org.bukkit.inventory.ItemStack;
 
 public class ItemConverter {
@@ -13,17 +14,21 @@ public class ItemConverter {
     private final ToolItemConverter toolItemConverter;
     private final MaterialItemConverter materialItemConverter;
     private final WeaponItemConverter weaponItemConverter;
+    private final ArmorItemConverter armorItemConverter;
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public ItemConverter(
             FoodItemConverter foodItemConverter,
             ToolItemConverter toolItemConverter,
-            MaterialItemConverter materialItemConverter, WeaponItemConverter weaponItemConverter
+            MaterialItemConverter materialItemConverter, 
+            WeaponItemConverter weaponItemConverter,
+            ArmorItemConverter armorItemConverter
     ) {
         this.foodItemConverter = foodItemConverter;
         this.toolItemConverter = toolItemConverter;
         this.materialItemConverter = materialItemConverter;
         this.weaponItemConverter = weaponItemConverter;
+        this.armorItemConverter = armorItemConverter;
     }
 
     public ItemStack convert(ItemBaseModel item, int amount) {
@@ -41,6 +46,10 @@ public class ItemConverter {
             case WEAPON -> {
                 ItemWeaponModel weaponData = gson.fromJson(gson.toJson(item.getData()), ItemWeaponModel.class);
                 result = weaponItemConverter.createNewItem(item, weaponData, amount);
+            }
+            case ARMOR -> {
+                ItemArmorModel armorData = gson.fromJson(gson.toJson(item.getData()), ItemArmorModel.class);
+                result = armorItemConverter.createNewItem(item, armorData, amount);
             }
             case MATERIAL -> result = materialItemConverter.createItem(item, null, amount);
         }
