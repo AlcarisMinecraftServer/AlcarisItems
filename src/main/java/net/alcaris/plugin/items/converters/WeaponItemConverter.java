@@ -116,6 +116,7 @@ public class WeaponItemConverter {
 
         PersistentDataContainer oldItemContainer = oldMeta.getPersistentDataContainer();
         int maxModification = oldItemContainer.getOrDefault(keys.get("max_modification"), PersistentDataType.INTEGER, 0);
+        int durability = oldItemContainer.getOrDefault(keys.get("durability"), PersistentDataType.INTEGER, 0);
 
         // 既存の性能値を読み込み
         WeaponStatData statData = new WeaponStatData();
@@ -131,7 +132,7 @@ public class WeaponItemConverter {
             weapon.getType(),
             weapon.getRequirement(),
             maxModification,
-            0, // durability is not available in backward compatibility
+            durability > 0 ? durability : (int) weapon.getDurability(),
             statData
         );
     }
@@ -140,7 +141,7 @@ public class WeaponItemConverter {
                                   String type, int requirement, int maxModification,
                                   int durability, WeaponStatData statData) {
         ItemStack itemStack = new ItemStack(getToolMaterial(item.getId()), amount);
-        Damageable itemMeta = (Damageable) itemStack.getItemMeta();
+        ItemMeta itemMeta = itemStack.getItemMeta();
 
         if (itemMeta == null) return itemStack;
 
@@ -156,15 +157,17 @@ public class WeaponItemConverter {
         setupBasicProperties(itemMeta, item);
         
         // Set durability if available
-        if (itemMeta instanceof Damageable damageable && durability > 0) {
-            damageable.setMaxDamage(durability);
+        if (durability > 0) {
+            if (itemMeta instanceof Damageable damageable) {
+                damageable.setMaxDamage(durability);
+            }
         }
         
         // Apply attribute modifiers
         applyAttributeModifiers(itemMeta, statData);
         
         // Set lore
-        List<Component> lore = createLore(item, requirement, maxModification, weapon, statData);
+        List<Component> lore = createLore(item, requirement, maxModification, weapon, durability, statData);
         itemMeta.lore(lore);
 
         // Set persistent data
@@ -204,7 +207,7 @@ public class WeaponItemConverter {
     }
 
     private List<Component> createLore(ItemBaseModel item, int requirement, int polishingCount,
-                                     ItemWeaponModel weapon, WeaponStatData statData) {
+                                     ItemWeaponModel weapon, int durability, WeaponStatData statData) {
         List<Component> lore = new ArrayList<>();
 
         // Add rarity at the top
@@ -229,12 +232,6 @@ public class WeaponItemConverter {
         lore.add(buildInfoLine("残り改造回数", String.valueOf(polishingCount)));
 
         // Add durability if present
-        int durability = 0;
-        try {
-            durability = (int) ItemWeaponModel.class.getMethod("getDurability").invoke(weapon);
-        } catch (Exception e) {
-            // fallback for backward compatibility
-        }
         if (durability > 0) {
             lore.add(buildInfoLine("耐久値", String.valueOf(durability)));
         }

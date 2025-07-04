@@ -29,69 +29,69 @@ public class ItemArmorModel {
     }
 
     public static class Attributes {
-        private double hp;
-        private double hpr;
-        private double mp;
-        private double mpr;
-        private double atk;
-        private double def;
-        private double mat;
-        private double mdf;
-        private double dex;
-        private double speed;
-        private double crt;  // クリティカル率
-        private double crd;  // クリティカルダメージ
-        private double luk;  // 幸運
+        private int hp;
+        private int hpr;
+        private int mp;
+        private int mpr;
+        private int atk;
+        private int def;
+        private int mat;
+        private int mdf;
+        private int dex;
+        private int speed;
+        private int crt;  // クリティカル率
+        private int crd;  // クリティカルダメージ
+        private int luk;  // 幸運
 
-        public double getHp() {
+        public int getHp() {
             return hp;
         }
 
-        public double getHpr() {
+        public int getHpr() {
             return hpr;
         }
 
-        public double getMp() {
+        public int getMp() {
             return mp;
         }
 
-        public double getMpr() {
+        public int getMpr() {
             return mpr;
         }
 
-        public double getAtk() {
+        public int getAtk() {
             return atk;
         }
 
-        public double getDef() {
+        public int getDef() {
             return def;
         }
 
-        public double getMat() {
+        public int getMat() {
             return mat;
         }
 
-        public double getMdf() {
+        public int getMdf() {
             return mdf;
         }
 
-        public double getDex() {
+        public int getDex() {
             return dex;
         }
 
-        public double getSpeed() {
+        public int getSpeed() {
             return speed;
         }
 
-        public double getCrt() {
+        public int getCrt() {
             return crt;
         }
 
-        public double getCrd() {
+        public int getCrd() {
             return crd;
         }
 
-        public double getLuk() {
+        public int getLuk() {
             return luk;
         }
     }
@@ -117,55 +117,55 @@ public class ItemArmorModel {
         return 0; // New structure doesn't use polishing count
     }
 
-    public double getHp() {
+    public int getHp() {
         return base != null && base.getAttributes() != null ? base.getAttributes().getHp() : 0;
     }
 
-    public double getHpr() {
+    public int getHpr() {
         return base != null && base.getAttributes() != null ? base.getAttributes().getHpr() : 0;
     }
 
-    public double getMp() {
+    public int getMp() {
         return base != null && base.getAttributes() != null ? base.getAttributes().getMp() : 0;
     }
 
-    public double getMpr() {
+    public int getMpr() {
         return base != null && base.getAttributes() != null ? base.getAttributes().getMpr() : 0;
     }
 
-    public double getAtk() {
+    public int getAtk() {
         return base != null && base.getAttributes() != null ? base.getAttributes().getAtk() : 0;
     }
 
-    public double getDef() {
+    public int getDef() {
         return base != null && base.getAttributes() != null ? base.getAttributes().getDef() : 0;
     }
 
-    public double getMat() {
+    public int getMat() {
         return base != null && base.getAttributes() != null ? base.getAttributes().getMat() : 0;
     }
 
-    public double getMdf() {
+    public int getMdf() {
         return base != null && base.getAttributes() != null ? base.getAttributes().getMdf() : 0;
     }
 
-    public double getDex() {
+    public int getDex() {
         return base != null && base.getAttributes() != null ? base.getAttributes().getDex() : 0;
     }
 
-    public double getSpeed() {
+    public int getSpeed() {
         return base != null && base.getAttributes() != null ? base.getAttributes().getSpeed() : 0;
     }
 
-    public double getCrt() {
+    public int getCrt() {
         return base != null && base.getAttributes() != null ? base.getAttributes().getCrt() : 0;
     }
 
-    public double getCrd() {
+    public int getCrd() {
         return base != null && base.getAttributes() != null ? base.getAttributes().getCrd() : 0;
     }
 
-    public double getLuk() {
+    public int getLuk() {
         return base != null && base.getAttributes() != null ? base.getAttributes().getLuk() : 0;
     }
 

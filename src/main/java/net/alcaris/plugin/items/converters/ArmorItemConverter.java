@@ -143,9 +143,9 @@ public class ArmorItemConverter {
 
         // Calculate final stats using ArmorStatData
         for (ArmorStats stat : ArmorStats.values()) {
-            double baseValue = getArmorStatValue(armor, stat);
+            int baseValue = getArmorStatValue(armor, stat);
             int performance = statData.getPerformanceValue(stat);
-            double finalValue = calculateFinalStat(baseValue, performance);
+            int finalValue = calculateFinalStat(baseValue, performance);
             statData.setFinalValue(stat, finalValue);
         }
 
@@ -168,8 +168,8 @@ public class ArmorItemConverter {
         return itemStack;
     }
 
-    private double calculateFinalStat(double baseValue, int performance) {
-        return Math.floor(baseValue * (0.5 * (1 + performance / 100.0)));
+    private int calculateFinalStat(int baseValue, int performance) {
+        return (int) Math.floor(baseValue * (0.5 * (1 + performance / 100.0)));
     }
 
     private void setupBasicProperties(ItemMeta itemMeta, ItemBaseModel item) {
@@ -223,12 +223,12 @@ public class ArmorItemConverter {
 
         // Add armor stats using ArmorStats enum
         for (ArmorStats stat : ArmorStats.values()) {
-            double baseValue = getArmorStatValue(armor, stat);
+            int baseValue = getArmorStatValue(armor, stat);
             if (baseValue != 0) {
-                double finalValue = statData.getFinalValue(stat);
+                int finalValue = statData.getFinalValue(stat);
                 int performanceValue = statData.getPerformanceValue(stat);
                 lore.add(buildStatLine(stat.getDisplayName(), 
-                        String.valueOf((int)finalValue), 
+                        String.valueOf(finalValue), 
                         String.valueOf(performanceValue)));
             }
         }
@@ -309,7 +309,7 @@ public class ArmorItemConverter {
         
         // ArmorStatsを使用してデータを設定
         for (ArmorStats stat : ArmorStats.values()) {
-            container.set(keys.get(stat.getValueKey()), PersistentDataType.DOUBLE, statData.getFinalValue(stat));
+            container.set(keys.get(stat.getValueKey()), PersistentDataType.INTEGER, statData.getFinalValue(stat));
             container.set(keys.get(stat.getPerformanceKey()), PersistentDataType.INTEGER, statData.getPerformanceValue(stat));
         }
     }
@@ -398,15 +398,15 @@ public class ArmorItemConverter {
 
         // アイテムのステータスを再計算（基礎値はItemArmorModelから取得）
         for (ArmorStats stat : ArmorStats.values()) {
-            double baseValue = getArmorStatValue(armor, stat);
+            int baseValue = getArmorStatValue(armor, stat);
             int performance = statData.getPerformanceValue(stat);
-            double finalValue = calculateFinalStat(baseValue, performance);
+            int finalValue = calculateFinalStat(baseValue, performance);
             statData.setFinalValue(stat, finalValue);
         }
 
         // 最終ステータスを更新
         for (ArmorStats stat : ArmorStats.values()) {
-            container.set(keys.get(stat.getValueKey()), PersistentDataType.DOUBLE, statData.getFinalValue(stat));
+            container.set(keys.get(stat.getValueKey()), PersistentDataType.INTEGER, statData.getFinalValue(stat));
         }
 
         // アイテムの説明文を更新
@@ -461,10 +461,10 @@ public class ArmorItemConverter {
      */
     private void addStatToLore(List<Component> lore, ItemArmorModel armor, ArmorStats stat, 
                               ArmorStatData statData) {
-        double baseValue = getArmorStatValue(armor, stat);
+        int baseValue = getArmorStatValue(armor, stat);
         if (baseValue != 0) {
             lore.add(buildStatLine(stat.getDisplayName(), 
-                    String.valueOf((int)statData.getFinalValue(stat)), 
+                    String.valueOf(statData.getFinalValue(stat)), 
                     String.valueOf(statData.getPerformanceValue(stat))));
         }
     }
@@ -476,7 +476,7 @@ public class ArmorItemConverter {
      * @param stat 取得したいステータス
      * @return 対応する基礎値
      */
-    private double getArmorStatValue(ItemArmorModel armor, ArmorStats stat) {
+    private int getArmorStatValue(ItemArmorModel armor, ArmorStats stat) {
         // ArmorStatsのgetValueメソッドを使用して動的に値を取得
         return stat.getValue(armor);
     }

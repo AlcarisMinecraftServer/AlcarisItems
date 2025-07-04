@@ -25,10 +25,10 @@ public enum ArmorStats {
     private final String displayName;
     private final String valueKey;
     private final String performanceKey;
-    private final Function<ItemArmorModel, Double> getter;
+    private final Function<ItemArmorModel, Integer> getter;
 
     ArmorStats(String key, String displayName, String valueKey, String performanceKey, 
-               Function<ItemArmorModel, Double> getter) {
+               Function<ItemArmorModel, Integer> getter) {
         this.key = key;
         this.displayName = displayName;
         this.valueKey = valueKey;
@@ -55,7 +55,7 @@ public enum ArmorStats {
     /**
      * ItemArmorModelから対応するステータス値を取得
      */
-    public double getValue(ItemArmorModel armor) {
+    public int getValue(ItemArmorModel armor) {
         return getter.apply(armor);
     }
 
