@@ -5,6 +5,8 @@ import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.core.model.item.ItemArmorModel;
 import net.alcaris.plugin.items.AlcarisItems;
 import net.alcaris.plugin.items.enums.Colors;
+import net.alcaris.plugin.items.enums.ArmorStats;
+import net.alcaris.plugin.items.enums.ArmorStatData;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -50,16 +52,19 @@ public class ArmorItemConverter {
 
     private Map<String, NamespacedKey> initializeKeys() {
         Map<String, NamespacedKey> keyMap = new HashMap<>();
-        String[] keyNames = {
-            "item_id", "item_version", "armor_type", "required_level", "max_modification",
-            "durability", "hp", "hp_perf", "hpr", "hpr_perf", "mp", "mp_perf", "mpr", "mpr_perf",
-            "atk", "atk_perf", "def", "def_perf", "mat", "mat_perf", "mdf", "mdf_perf",
-            "dex", "dex_perf", "speed", "speed_perf"
-        };
-
-        for (String name : keyNames) {
+        
+        // 基本キー
+        String[] basicKeys = {"item_id", "item_version", "armor_type", "required_level", "max_modification", "durability"};
+        for (String name : basicKeys) {
             keyMap.put(name, new NamespacedKey(plugin, name));
         }
+        
+        // ArmorStatsから自動的にキーを生成
+        for (ArmorStats stat : ArmorStats.values()) {
+            keyMap.put(stat.getValueKey(), new NamespacedKey(plugin, stat.getValueKey()));
+            keyMap.put(stat.getPerformanceKey(), new NamespacedKey(plugin, stat.getPerformanceKey()));
+        }
+        
         return keyMap;
     }
 
@@ -86,6 +91,10 @@ public class ArmorItemConverter {
         PersistentDataContainer container = itemMeta.getPersistentDataContainer();
         int maxModification = (int) armor.getMaxModification(); // doubleからintに変換
 
+        // 初期性能値を0に設定したArmorStatDataを作成
+        ArmorStatData statData = new ArmorStatData();
+        // デフォルトで全て0で初期化されているので追加設定不要
+
         return commonSetting(
             item,
             armor,
@@ -94,8 +103,7 @@ public class ArmorItemConverter {
             armor.getRequirement(),
             maxModification,
             (int) armor.getDurability(), // durabilityもdoubleからintに変換
-            0, // 初期性能値を0に設定
-            0, 0, 0, 0, 0, 0, 0, 0, 0
+            statData
         );
     }
 
@@ -106,6 +114,13 @@ public class ArmorItemConverter {
         PersistentDataContainer oldItemContainer = oldMeta.getPersistentDataContainer();
         int maxModification = oldItemContainer.getOrDefault(keys.get("max_modification"), PersistentDataType.INTEGER, 0);
 
+        // ArmorStatsを使用して性能値を取得してArmorStatDataに設定
+        ArmorStatData statData = new ArmorStatData();
+        for (ArmorStats stat : ArmorStats.values()) {
+            int performance = oldItemContainer.getOrDefault(keys.get(stat.getPerformanceKey()), PersistentDataType.INTEGER, 0);
+            statData.setPerformanceValue(stat, performance);
+        }
+
         return commonSetting(
             item,
             armor,
@@ -114,41 +129,25 @@ public class ArmorItemConverter {
             armor.getRequirement(),
             maxModification,
             0, // durability is not available in backward compatibility
-            oldItemContainer.getOrDefault(keys.get("hp_perf"), PersistentDataType.INTEGER, 0),
-            oldItemContainer.getOrDefault(keys.get("hpr_perf"), PersistentDataType.INTEGER, 0),
-            oldItemContainer.getOrDefault(keys.get("mp_perf"), PersistentDataType.INTEGER, 0),
-            oldItemContainer.getOrDefault(keys.get("mpr_perf"), PersistentDataType.INTEGER, 0),
-            oldItemContainer.getOrDefault(keys.get("atk_perf"), PersistentDataType.INTEGER, 0),
-            oldItemContainer.getOrDefault(keys.get("def_perf"), PersistentDataType.INTEGER, 0),
-            oldItemContainer.getOrDefault(keys.get("mat_perf"), PersistentDataType.INTEGER, 0),
-            oldItemContainer.getOrDefault(keys.get("mdf_perf"), PersistentDataType.INTEGER, 0),
-            oldItemContainer.getOrDefault(keys.get("dex_perf"), PersistentDataType.INTEGER, 0),
-            oldItemContainer.getOrDefault(keys.get("speed_perf"), PersistentDataType.INTEGER, 0)
+            statData
         );
     }
 
     private ItemStack commonSetting(ItemBaseModel item, ItemArmorModel armor, int amount,
                                   String type, int requirement, int maxModification,
-                                  int durability, int hpPerformance, int hprPerformance,
-                                  int mpPerformance, int mprPerformance, int atkPerformance,
-                                  int defPerformance, int matPerformance, int mdfPerformance,
-                                  int dexPerformance, int speedPerformance) {
+                                  int durability, ArmorStatData statData) {
         ItemStack itemStack = new ItemStack(getArmorMaterial(item.getId()), amount);
         Damageable itemMeta = (Damageable) itemStack.getItemMeta();
 
         if (itemMeta == null) return itemStack;
 
-        // Calculate final stats
-        double finalHp = calculateFinalStat(armor.getHp(), hpPerformance);
-        double finalHpr = calculateFinalStat(armor.getHpr(), hprPerformance);
-        double finalMp = calculateFinalStat(armor.getMp(), mpPerformance);
-        double finalMpr = calculateFinalStat(armor.getMpr(), mprPerformance);
-        double finalAtk = calculateFinalStat(armor.getAtk(), atkPerformance);
-        double finalDef = calculateFinalStat(armor.getDef(), defPerformance);
-        double finalMat = calculateFinalStat(armor.getMat(), matPerformance);
-        double finalMdf = calculateFinalStat(armor.getMdf(), mdfPerformance);
-        double finalDex = calculateFinalStat(armor.getDex(), dexPerformance);
-        double finalSpeed = calculateFinalStat(armor.getSpeed(), speedPerformance);
+        // Calculate final stats using ArmorStatData
+        for (ArmorStats stat : ArmorStats.values()) {
+            double baseValue = getArmorStatValue(armor, stat);
+            int performance = statData.getPerformanceValue(stat);
+            double finalValue = calculateFinalStat(baseValue, performance);
+            statData.setFinalValue(stat, finalValue);
+        }
 
         // Set basic item properties
         setupBasicProperties(itemMeta, item);
@@ -159,24 +158,18 @@ public class ArmorItemConverter {
         }
         
         // Set lore
-        List<Component> lore = createLore(item, requirement, maxModification, armor,
-            finalHp, finalHpr, finalMp, finalMpr, finalAtk, finalDef, finalMat, finalMdf, finalDex, finalSpeed,
-            hpPerformance, hprPerformance, mpPerformance, mprPerformance, atkPerformance,
-            defPerformance, matPerformance, mdfPerformance, dexPerformance, speedPerformance);
+        List<Component> lore = createLore(item, requirement, maxModification, armor, statData);
         itemMeta.lore(lore);
 
         // Set persistent data
-        setupPersistentData(itemMeta, item, type != null ? type : "default", requirement, maxModification, durability,
-            finalHp, hpPerformance, finalHpr, hprPerformance, finalMp, mpPerformance, finalMpr, mprPerformance,
-            finalAtk, atkPerformance, finalDef, defPerformance, finalMat, matPerformance, finalMdf, mdfPerformance,
-            finalDex, dexPerformance, finalSpeed, speedPerformance);
+        setupPersistentData(itemMeta, item, type != null ? type : "default", requirement, maxModification, durability, statData);
 
         itemStack.setItemMeta(itemMeta);
         return itemStack;
     }
 
     private double calculateFinalStat(double baseValue, int performance) {
-        return Math.floor(baseValue * (0.5 * (1 + performance / 100.0)) * 100) / 100.0;
+        return Math.floor(baseValue * (0.5 * (1 + performance / 100.0)));
     }
 
     private void setupBasicProperties(ItemMeta itemMeta, ItemBaseModel item) {
@@ -193,12 +186,7 @@ public class ArmorItemConverter {
     }
 
     private List<Component> createLore(ItemBaseModel item, int requirement, int polishingCount,
-                                     ItemArmorModel armor, double finalHp, double finalHpr, double finalMp,
-                                     double finalMpr, double finalAtk, double finalDef, double finalMat,
-                                     double finalMdf, double finalDex, double finalSpeed,
-                                     int hpPerformance, int hprPerformance, int mpPerformance, int mprPerformance,
-                                     int atkPerformance, int defPerformance, int matPerformance, int mdfPerformance,
-                                     int dexPerformance, int speedPerformance) {
+                                     ItemArmorModel armor, ArmorStatData statData) {
         List<Component> lore = new ArrayList<>();
 
         // Add rarity at the top
@@ -233,27 +221,17 @@ public class ArmorItemConverter {
             lore.add(buildInfoLine("耐久値", String.valueOf(durability)));
         }
 
-        // Add armor stats
-        if (armor.getHp() != 0)
-            lore.add(buildStatLine("HP", String.valueOf(finalHp), String.valueOf(hpPerformance)));
-        if (armor.getHpr() != 0)
-            lore.add(buildStatLine("HPR", String.valueOf(finalHpr), String.valueOf(hprPerformance)));
-        if (armor.getMp() != 0)
-            lore.add(buildStatLine("MP", String.valueOf(finalMp), String.valueOf(mpPerformance)));
-        if (armor.getMpr() != 0)
-            lore.add(buildStatLine("MPR", String.valueOf(finalMpr), String.valueOf(mprPerformance)));
-        if (armor.getAtk() != 0)
-            lore.add(buildStatLine("ATK", String.valueOf(finalAtk), String.valueOf(atkPerformance)));
-        if (armor.getDef() != 0)
-            lore.add(buildStatLine("DEF", String.valueOf(finalDef), String.valueOf(defPerformance)));
-        if (armor.getMat() != 0)
-            lore.add(buildStatLine("MAT", String.valueOf(finalMat), String.valueOf(matPerformance)));
-        if (armor.getMdf() != 0)
-            lore.add(buildStatLine("MDF", String.valueOf(finalMdf), String.valueOf(mdfPerformance)));
-        if (armor.getDex() != 0)
-            lore.add(buildStatLine("DEX", String.valueOf(finalDex), String.valueOf(dexPerformance)));
-        if (armor.getSpeed() != 0)
-            lore.add(buildStatLine("SPEED", String.valueOf(finalSpeed), String.valueOf(speedPerformance)));
+        // Add armor stats using ArmorStats enum
+        for (ArmorStats stat : ArmorStats.values()) {
+            double baseValue = getArmorStatValue(armor, stat);
+            if (baseValue != 0) {
+                double finalValue = statData.getFinalValue(stat);
+                int performanceValue = statData.getPerformanceValue(stat);
+                lore.add(buildStatLine(stat.getDisplayName(), 
+                        String.valueOf((int)finalValue), 
+                        String.valueOf(performanceValue)));
+            }
+        }
 
         return lore;
     }
@@ -319,11 +297,7 @@ public class ArmorItemConverter {
 
     private void setupPersistentData(ItemMeta itemMeta, ItemBaseModel item, String armorType,
                                    int requiredLevel, int maxModification, int durability,
-                                   double finalHp, int hpPerformance, double finalHpr, int hprPerformance,
-                                   double finalMp, int mpPerformance, double finalMpr, int mprPerformance,
-                                   double finalAtk, int atkPerformance, double finalDef, int defPerformance,
-                                   double finalMat, int matPerformance, double finalMdf, int mdfPerformance,
-                                   double finalDex, int dexPerformance, double finalSpeed, int speedPerformance) {
+                                   ArmorStatData statData) {
         PersistentDataContainer container = itemMeta.getPersistentDataContainer();
         
         container.set(keys.get("item_id"), PersistentDataType.STRING, item.getId());
@@ -333,26 +307,11 @@ public class ArmorItemConverter {
         container.set(keys.get("max_modification"), PersistentDataType.INTEGER, maxModification);
         container.set(keys.get("durability"), PersistentDataType.INTEGER, durability);
         
-        container.set(keys.get("hp"), PersistentDataType.DOUBLE, finalHp);
-        container.set(keys.get("hp_perf"), PersistentDataType.INTEGER, hpPerformance);
-        container.set(keys.get("hpr"), PersistentDataType.DOUBLE, finalHpr);
-        container.set(keys.get("hpr_perf"), PersistentDataType.INTEGER, hprPerformance);
-        container.set(keys.get("mp"), PersistentDataType.DOUBLE, finalMp);
-        container.set(keys.get("mp_perf"), PersistentDataType.INTEGER, mpPerformance);
-        container.set(keys.get("mpr"), PersistentDataType.DOUBLE, finalMpr);
-        container.set(keys.get("mpr_perf"), PersistentDataType.INTEGER, mprPerformance);
-        container.set(keys.get("atk"), PersistentDataType.DOUBLE, finalAtk);
-        container.set(keys.get("atk_perf"), PersistentDataType.INTEGER, atkPerformance);
-        container.set(keys.get("def"), PersistentDataType.DOUBLE, finalDef);
-        container.set(keys.get("def_perf"), PersistentDataType.INTEGER, defPerformance);
-        container.set(keys.get("mat"), PersistentDataType.DOUBLE, finalMat);
-        container.set(keys.get("mat_perf"), PersistentDataType.INTEGER, matPerformance);
-        container.set(keys.get("mdf"), PersistentDataType.DOUBLE, finalMdf);
-        container.set(keys.get("mdf_perf"), PersistentDataType.INTEGER, mdfPerformance);
-        container.set(keys.get("dex"), PersistentDataType.DOUBLE, finalDex);
-        container.set(keys.get("dex_perf"), PersistentDataType.INTEGER, dexPerformance);
-        container.set(keys.get("speed"), PersistentDataType.DOUBLE, finalSpeed);
-        container.set(keys.get("speed_perf"), PersistentDataType.INTEGER, speedPerformance);
+        // ArmorStatsを使用してデータを設定
+        for (ArmorStats stat : ArmorStats.values()) {
+            container.set(keys.get(stat.getValueKey()), PersistentDataType.DOUBLE, statData.getFinalValue(stat));
+            container.set(keys.get(stat.getPerformanceKey()), PersistentDataType.INTEGER, statData.getPerformanceValue(stat));
+        }
     }
 
     public boolean upgradeArmorPerformance(ItemStack itemStack, UpgradeType type, String specificStat) {
@@ -382,125 +341,73 @@ public class ArmorItemConverter {
             return false;
         }
 
-        // 現在の性能値を取得
-        int hpPerf = container.getOrDefault(keys.get("hp_perf"), PersistentDataType.INTEGER, 0);
-        int hprPerf = container.getOrDefault(keys.get("hpr_perf"), PersistentDataType.INTEGER, 0);
-        int mpPerf = container.getOrDefault(keys.get("mp_perf"), PersistentDataType.INTEGER, 0);
-        int mprPerf = container.getOrDefault(keys.get("mpr_perf"), PersistentDataType.INTEGER, 0);
-        int atkPerf = container.getOrDefault(keys.get("atk_perf"), PersistentDataType.INTEGER, 0);
-        int defPerf = container.getOrDefault(keys.get("def_perf"), PersistentDataType.INTEGER, 0);
-        int matPerf = container.getOrDefault(keys.get("mat_perf"), PersistentDataType.INTEGER, 0);
-        int mdfPerf = container.getOrDefault(keys.get("mdf_perf"), PersistentDataType.INTEGER, 0);
-        int dexPerf = container.getOrDefault(keys.get("dex_perf"), PersistentDataType.INTEGER, 0);
-        int speedPerf = container.getOrDefault(keys.get("speed_perf"), PersistentDataType.INTEGER, 0);
+        // 現在の性能値を取得してArmorStatDataに設定
+        ArmorStatData statData = new ArmorStatData();
+        for (ArmorStats stat : ArmorStats.values()) {
+            int perf = container.getOrDefault(keys.get(stat.getPerformanceKey()), PersistentDataType.INTEGER, 0);
+            statData.setPerformanceValue(stat, perf);
+        }
 
         // アップグレードタイプに応じて処理
         switch (type) {
             case ROLL_ALL:
-                hpPerf = calculatePerformance();
-                hprPerf = calculatePerformance();
-                mpPerf = calculatePerformance();
-                mprPerf = calculatePerformance();
-                atkPerf = calculatePerformance();
-                defPerf = calculatePerformance();
-                matPerf = calculatePerformance();
-                mdfPerf = calculatePerformance();
-                dexPerf = calculatePerformance();
-                speedPerf = calculatePerformance();
+                for (ArmorStats stat : ArmorStats.values()) {
+                    statData.setPerformanceValue(stat, calculatePerformance());
+                }
                 break;
 
             case FIXED_INCREMENT:
                 if (specificStat != null) {
-                    switch (specificStat.toLowerCase()) {
-                        case "hp" -> hpPerf = Math.min(100, hpPerf + PERFORMANCE_INCREMENT);
-                        case "hpr" -> hprPerf = Math.min(100, hprPerf + PERFORMANCE_INCREMENT);
-                        case "mp" -> mpPerf = Math.min(100, mpPerf + PERFORMANCE_INCREMENT);
-                        case "mpr" -> mprPerf = Math.min(100, mprPerf + PERFORMANCE_INCREMENT);
-                        case "atk" -> atkPerf = Math.min(100, atkPerf + PERFORMANCE_INCREMENT);
-                        case "def" -> defPerf = Math.min(100, defPerf + PERFORMANCE_INCREMENT);
-                        case "mat" -> matPerf = Math.min(100, matPerf + PERFORMANCE_INCREMENT);
-                        case "mdf" -> mdfPerf = Math.min(100, mdfPerf + PERFORMANCE_INCREMENT);
-                        case "dex" -> dexPerf = Math.min(100, dexPerf + PERFORMANCE_INCREMENT);
-                        case "speed" -> speedPerf = Math.min(100, speedPerf + PERFORMANCE_INCREMENT);
+                    ArmorStats targetStat = ArmorStats.fromKey(specificStat);
+                    if (targetStat != null) {
+                        int currentPerf = statData.getPerformanceValue(targetStat);
+                        statData.setPerformanceValue(targetStat, Math.min(100, currentPerf + PERFORMANCE_INCREMENT));
                     }
                 }
                 break;
 
             case ROLL_SPECIFIC:
                 if (specificStat != null) {
-                    switch (specificStat.toLowerCase()) {
-                        case "hp" -> hpPerf = calculatePerformance();
-                        case "hpr" -> hprPerf = calculatePerformance();
-                        case "mp" -> mpPerf = calculatePerformance();
-                        case "mpr" -> mprPerf = calculatePerformance();
-                        case "atk" -> atkPerf = calculatePerformance();
-                        case "def" -> defPerf = calculatePerformance();
-                        case "mat" -> matPerf = calculatePerformance();
-                        case "mdf" -> mdfPerf = calculatePerformance();
-                        case "dex" -> dexPerf = calculatePerformance();
-                        case "speed" -> speedPerf = calculatePerformance();
+                    ArmorStats targetStat = ArmorStats.fromKey(specificStat);
+                    if (targetStat != null) {
+                        statData.setPerformanceValue(targetStat, calculatePerformance());
                     }
                 }
                 break;
 
             case ROLL_AND_KEEP_HIGH:
                 if (specificStat != null) {
-                    int newRoll = calculatePerformance();
-                    switch (specificStat.toLowerCase()) {
-                        case "hp" -> hpPerf = Math.max(hpPerf, newRoll);
-                        case "hpr" -> hprPerf = Math.max(hprPerf, newRoll);
-                        case "mp" -> mpPerf = Math.max(mpPerf, newRoll);
-                        case "mpr" -> mprPerf = Math.max(mprPerf, newRoll);
-                        case "atk" -> atkPerf = Math.max(atkPerf, newRoll);
-                        case "def" -> defPerf = Math.max(defPerf, newRoll);
-                        case "mat" -> matPerf = Math.max(matPerf, newRoll);
-                        case "mdf" -> mdfPerf = Math.max(mdfPerf, newRoll);
-                        case "dex" -> dexPerf = Math.max(dexPerf, newRoll);
-                        case "speed" -> speedPerf = Math.max(speedPerf, newRoll);
+                    ArmorStats targetStat = ArmorStats.fromKey(specificStat);
+                    if (targetStat != null) {
+                        int newRoll = calculatePerformance();
+                        int currentPerf = statData.getPerformanceValue(targetStat);
+                        statData.setPerformanceValue(targetStat, Math.max(currentPerf, newRoll));
                     }
                 }
                 break;
         }
 
         // 性能値を更新
-        container.set(keys.get("hp_perf"), PersistentDataType.INTEGER, hpPerf);
-        container.set(keys.get("hpr_perf"), PersistentDataType.INTEGER, hprPerf);
-        container.set(keys.get("mp_perf"), PersistentDataType.INTEGER, mpPerf);
-        container.set(keys.get("mpr_perf"), PersistentDataType.INTEGER, mprPerf);
-        container.set(keys.get("atk_perf"), PersistentDataType.INTEGER, atkPerf);
-        container.set(keys.get("def_perf"), PersistentDataType.INTEGER, defPerf);
-        container.set(keys.get("mat_perf"), PersistentDataType.INTEGER, matPerf);
-        container.set(keys.get("mdf_perf"), PersistentDataType.INTEGER, mdfPerf);
-        container.set(keys.get("dex_perf"), PersistentDataType.INTEGER, dexPerf);
-        container.set(keys.get("speed_perf"), PersistentDataType.INTEGER, speedPerf);
+        for (ArmorStats stat : ArmorStats.values()) {
+            container.set(keys.get(stat.getPerformanceKey()), PersistentDataType.INTEGER, statData.getPerformanceValue(stat));
+        }
 
         // maxModificationを減らす
         int newMaxModification = currentMaxModification - 1;
         container.set(keys.get("max_modification"), PersistentDataType.INTEGER, newMaxModification);
 
         // アイテムのステータスを再計算（基礎値はItemArmorModelから取得）
-        double finalHp = calculateFinalStat(armor.getHp(), hpPerf);
-        double finalHpr = calculateFinalStat(armor.getHpr(), hprPerf);
-        double finalMp = calculateFinalStat(armor.getMp(), mpPerf);
-        double finalMpr = calculateFinalStat(armor.getMpr(), mprPerf);
-        double finalAtk = calculateFinalStat(armor.getAtk(), atkPerf);
-        double finalDef = calculateFinalStat(armor.getDef(), defPerf);
-        double finalMat = calculateFinalStat(armor.getMat(), matPerf);
-        double finalMdf = calculateFinalStat(armor.getMdf(), mdfPerf);
-        double finalDex = calculateFinalStat(armor.getDex(), dexPerf);
-        double finalSpeed = calculateFinalStat(armor.getSpeed(), speedPerf);
+        for (ArmorStats stat : ArmorStats.values()) {
+            double baseValue = getArmorStatValue(armor, stat);
+            int performance = statData.getPerformanceValue(stat);
+            double finalValue = calculateFinalStat(baseValue, performance);
+            statData.setFinalValue(stat, finalValue);
+        }
 
         // 最終ステータスを更新
-        container.set(keys.get("hp"), PersistentDataType.DOUBLE, finalHp);
-        container.set(keys.get("hpr"), PersistentDataType.DOUBLE, finalHpr);
-        container.set(keys.get("mp"), PersistentDataType.DOUBLE, finalMp);
-        container.set(keys.get("mpr"), PersistentDataType.DOUBLE, finalMpr);
-        container.set(keys.get("atk"), PersistentDataType.DOUBLE, finalAtk);
-        container.set(keys.get("def"), PersistentDataType.DOUBLE, finalDef);
-        container.set(keys.get("mat"), PersistentDataType.DOUBLE, finalMat);
-        container.set(keys.get("mdf"), PersistentDataType.DOUBLE, finalMdf);
-        container.set(keys.get("dex"), PersistentDataType.DOUBLE, finalDex);
-        container.set(keys.get("speed"), PersistentDataType.DOUBLE, finalSpeed);
+        for (ArmorStats stat : ArmorStats.values()) {
+            container.set(keys.get(stat.getValueKey()), PersistentDataType.DOUBLE, statData.getFinalValue(stat));
+        }
 
         // アイテムの説明文を更新
         long version = container.getOrDefault(keys.get("item_version"), PersistentDataType.LONG, 0L);
@@ -539,30 +446,38 @@ public class ArmorItemConverter {
         lore.add(buildInfoLine("必要レベル", String.valueOf(requiredLevel)));
         lore.add(buildInfoLine("残り改造回数", String.valueOf(newMaxModification)));
 
-        // ステータスの表示
-        if (armor.getHp() != 0)
-            lore.add(buildStatLine("HP", String.valueOf(finalHp), String.valueOf(hpPerf)));
-        if (armor.getHpr() != 0)
-            lore.add(buildStatLine("HPR", String.valueOf(finalHpr), String.valueOf(hprPerf)));
-        if (armor.getMp() != 0)
-            lore.add(buildStatLine("MP", String.valueOf(finalMp), String.valueOf(mpPerf)));
-        if (armor.getMpr() != 0)
-            lore.add(buildStatLine("MPR", String.valueOf(finalMpr), String.valueOf(mprPerf)));
-        if (armor.getAtk() != 0)
-            lore.add(buildStatLine("ATK", String.valueOf(finalAtk), String.valueOf(atkPerf)));
-        if (armor.getDef() != 0)
-            lore.add(buildStatLine("DEF", String.valueOf(finalDef), String.valueOf(defPerf)));
-        if (armor.getMat() != 0)
-            lore.add(buildStatLine("MAT", String.valueOf(finalMat), String.valueOf(matPerf)));
-        if (armor.getMdf() != 0)
-            lore.add(buildStatLine("MDF", String.valueOf(finalMdf), String.valueOf(mdfPerf)));
-        if (armor.getDex() != 0)
-            lore.add(buildStatLine("DEX", String.valueOf(finalDex), String.valueOf(dexPerf)));
-        if (armor.getSpeed() != 0)
-            lore.add(buildStatLine("SPEED", String.valueOf(finalSpeed), String.valueOf(speedPerf)));
+        // ステータスの表示（ArmorStatsを使用）
+        for (ArmorStats stat : ArmorStats.values()) {
+            addStatToLore(lore, armor, stat, statData);
+        }
 
         itemMeta.lore(lore);
         itemStack.setItemMeta(itemMeta);
         return true;
+    }
+
+    /**
+     * ステータスをLoreに追加するヘルパーメソッド
+     */
+    private void addStatToLore(List<Component> lore, ItemArmorModel armor, ArmorStats stat, 
+                              ArmorStatData statData) {
+        double baseValue = getArmorStatValue(armor, stat);
+        if (baseValue != 0) {
+            lore.add(buildStatLine(stat.getDisplayName(), 
+                    String.valueOf((int)statData.getFinalValue(stat)), 
+                    String.valueOf(statData.getPerformanceValue(stat))));
+        }
+    }
+
+    /**
+     * ArmorStatsに対応する基礎値を取得するヘルパーメソッド
+     * 
+     * @param armor ItemArmorModelオブジェクト
+     * @param stat 取得したいステータス
+     * @return 対応する基礎値
+     */
+    private double getArmorStatValue(ItemArmorModel armor, ArmorStats stat) {
+        // ArmorStatsのgetValueメソッドを使用して動的に値を取得
+        return stat.getValue(armor);
     }
 } 
