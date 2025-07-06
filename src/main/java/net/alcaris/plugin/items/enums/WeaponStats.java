@@ -11,6 +11,7 @@ public enum WeaponStats {
     WALK_SPEED("walkspeed", "移動速度", "movement_speed", "movement_speed_perf", ItemWeaponModel::getWalkSpeed),
     ATTACK_RANGE("attackrange", "攻撃距離", "attack_range", "attack_range_perf", ItemWeaponModel::getAttackRange),
     ATTACK_SPEED("attackspeed", "攻撃速度", "attack_speed", "attack_speed_perf", ItemWeaponModel::getAttackSpeed),
+    HPR("hpr", "HPR", "hpr", "hpr_perf", ItemWeaponModel::getHpr),
     MP("mp", "MP", "mp", "mp_perf", ItemWeaponModel::getMp),
     MPR("mpr", "MPR", "mpr", "mpr_perf", ItemWeaponModel::getMpr),
     ATK("atk", "ATK", "atk", "atk_perf", ItemWeaponModel::getAtk),

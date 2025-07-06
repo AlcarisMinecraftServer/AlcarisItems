@@ -242,7 +242,7 @@ public class WeaponItemConverter {
             int performance = statData.getPerformanceValue(stat);
             if (finalValue > 0) {
                 String displayValue;
-                if (stat == WeaponStats.WALK_SPEED || stat == WeaponStats.MP || stat == WeaponStats.MPR || 
+                if (stat == WeaponStats.HPR || stat == WeaponStats.MP || stat == WeaponStats.MPR ||
                     stat == WeaponStats.ATK || stat == WeaponStats.DEF || stat == WeaponStats.MDF || 
                     stat == WeaponStats.CRT || stat == WeaponStats.CRD || stat == WeaponStats.SPD || 
                     stat == WeaponStats.LUK) {
@@ -331,7 +331,7 @@ public class WeaponItemConverter {
         // WeaponStatsを使用してデータを設定
         for (WeaponStats stat : WeaponStats.values()) {
             // 最終値を保存
-            if (stat == WeaponStats.WALK_SPEED || stat == WeaponStats.MP || stat == WeaponStats.MPR || 
+            if (stat == WeaponStats.HPR || stat == WeaponStats.MP || stat == WeaponStats.MPR ||
                 stat == WeaponStats.ATK || stat == WeaponStats.DEF || stat == WeaponStats.MDF || 
                 stat == WeaponStats.CRT || stat == WeaponStats.CRD || stat == WeaponStats.SPD || 
                 stat == WeaponStats.LUK) {
@@ -395,12 +395,12 @@ public class WeaponItemConverter {
         }
         
         // Apply movement speed modifier
-        int movementSpeed = (int) statData.getFinalValue(WeaponStats.WALK_SPEED);
+        double movementSpeed = statData.getFinalValue(WeaponStats.WALK_SPEED);
         if (movementSpeed > 0) {
             AttributeModifier movementModifier = new AttributeModifier(
                 new NamespacedKey(plugin, "weapon_movement_speed"),
-                movementSpeed / 100.0, // Convert percentage to decimal
-                AttributeModifier.Operation.MULTIPLY_SCALAR_1,
+                movementSpeed / 1000.0, // Convert percentage to decimal
+                AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.MAINHAND
             );
             itemMeta.addAttributeModifier(Attribute.GENERIC_MOVEMENT_SPEED, movementModifier);
@@ -500,7 +500,7 @@ public class WeaponItemConverter {
         // 最終ステータスを更新
         for (WeaponStats stat : WeaponStats.values()) {
             // 最終値を保存
-            if (stat == WeaponStats.WALK_SPEED || stat == WeaponStats.MP || stat == WeaponStats.MPR || 
+            if (stat == WeaponStats.HPR || stat == WeaponStats.MP || stat == WeaponStats.MPR || 
                 stat == WeaponStats.ATK || stat == WeaponStats.DEF || stat == WeaponStats.MDF || 
                 stat == WeaponStats.CRT || stat == WeaponStats.CRD || stat == WeaponStats.SPD || 
                 stat == WeaponStats.LUK) {
@@ -562,7 +562,7 @@ public class WeaponItemConverter {
             int performance = statData.getPerformanceValue(stat);
             if (finalValue > 0) {
                 String displayValue;
-                if (stat == WeaponStats.WALK_SPEED || stat == WeaponStats.MP || stat == WeaponStats.MPR || 
+                if (stat == WeaponStats.HPR || stat == WeaponStats.MP || stat == WeaponStats.MPR ||
                     stat == WeaponStats.ATK || stat == WeaponStats.DEF || stat == WeaponStats.MDF || 
                     stat == WeaponStats.CRT || stat == WeaponStats.CRD || stat == WeaponStats.SPD || 
                     stat == WeaponStats.LUK) {
