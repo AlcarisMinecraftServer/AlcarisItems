@@ -178,7 +178,13 @@ public class WeaponItemConverter {
     }
 
     private double calculateFinalStat(double baseValue, int performance) {
-        return Math.floor(baseValue * (0.5 * (1 + performance / 100.0)) * 100) / 100.0;
+        if (baseValue < 0) {
+            // ベース値がマイナスの場合: baseValue * (1 - (performance / 200))
+            return Math.floor(baseValue * (1 - (performance / 200.0)) * 100) / 100.0;
+        } else {
+            // ベース値がプラスまたは0の場合: 既存の計算式
+            return Math.floor(baseValue * (0.5 * (1 + performance / 100.0)) * 100) / 100.0;
+        }
     }
 
     /**
@@ -240,7 +246,7 @@ public class WeaponItemConverter {
         for (WeaponStats stat : WeaponStats.values()) {
             double finalValue = statData.getFinalValue(stat);
             int performance = statData.getPerformanceValue(stat);
-            if (finalValue > 0) {
+            if (finalValue != 0) { // 0以外の値（プラス・マイナス両方）を表示
                 String displayValue;
                 if (stat == WeaponStats.HPR || stat == WeaponStats.MP || stat == WeaponStats.MPR ||
                     stat == WeaponStats.ATK || stat == WeaponStats.DEF || stat == WeaponStats.MDF || 
@@ -270,11 +276,20 @@ public class WeaponItemConverter {
         int performance = Integer.parseInt(percent);
         TextColor percentColor = getPerformanceColor(performance);
         
+        // 値がマイナスの場合は赤色、プラスの場合は緑色で表示
+        TextColor valueColor;
+        try {
+            double numValue = Double.parseDouble(value);
+            valueColor = numValue < 0 ? NamedTextColor.RED : NamedTextColor.GREEN;
+        } catch (NumberFormatException e) {
+            valueColor = NamedTextColor.GREEN; // デフォルト
+        }
+        
         return Component.text(label + " : ")
             .color(NamedTextColor.WHITE)
             .decoration(TextDecoration.ITALIC, false)
             .append(Component.text(value)
-                .color(NamedTextColor.GREEN)
+                .color(valueColor)
                 .decoration(TextDecoration.ITALIC, false))
             .append(Component.text(" (")
                 .color(NamedTextColor.WHITE)
@@ -356,22 +371,20 @@ public class WeaponItemConverter {
         
         // Apply attack damage modifier (subtract 1 from base value)
         double attackDamage = statData.getFinalValue(WeaponStats.DAMAGE);
-        if (attackDamage > 0) {
+        if (attackDamage != 0) { // 0以外の値（プラス・マイナス両方）を適用
             double adjustedDamage = attackDamage - 1.0;
-            if (adjustedDamage > 0) {
-                AttributeModifier damageModifier = new AttributeModifier(
-                    new NamespacedKey(plugin, "weapon_attack_damage"),
-                    adjustedDamage,
-                    AttributeModifier.Operation.ADD_NUMBER,
-                    EquipmentSlotGroup.MAINHAND
-                );
-                itemMeta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE, damageModifier);
-            }
+            AttributeModifier damageModifier = new AttributeModifier(
+                new NamespacedKey(plugin, "weapon_attack_damage"),
+                adjustedDamage,
+                AttributeModifier.Operation.ADD_NUMBER,
+                EquipmentSlotGroup.MAINHAND
+            );
+            itemMeta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE, damageModifier);
         }
         
         // Apply attack speed modifier (subtract 4 from base value)
         double attackSpeed = statData.getFinalValue(WeaponStats.ATTACK_SPEED);
-        if (attackSpeed > 0) {
+        if (attackSpeed != 0) { // 0以外の値（プラス・マイナス両方）を適用
             double adjustedSpeed = attackSpeed - 4.0;
             AttributeModifier speedModifier = new AttributeModifier(
                 new NamespacedKey(plugin, "weapon_attack_speed"),
@@ -384,7 +397,7 @@ public class WeaponItemConverter {
         
         // Apply attack range modifier
         double attackRange = statData.getFinalValue(WeaponStats.ATTACK_RANGE);
-        if (attackRange > 0) {
+        if (attackRange != 0) { // 0以外の値（プラス・マイナス両方）を適用
             AttributeModifier rangeModifier = new AttributeModifier(
                 new NamespacedKey(plugin, "weapon_attack_range"),
                 attackRange,
@@ -396,7 +409,7 @@ public class WeaponItemConverter {
         
         // Apply movement speed modifier
         double movementSpeed = statData.getFinalValue(WeaponStats.WALK_SPEED);
-        if (movementSpeed > 0) {
+        if (movementSpeed != 0) { // 0以外の値（プラス・マイナス両方）を適用
             AttributeModifier movementModifier = new AttributeModifier(
                 new NamespacedKey(plugin, "weapon_movement_speed"),
                 movementSpeed / 1000.0, // Convert percentage to decimal

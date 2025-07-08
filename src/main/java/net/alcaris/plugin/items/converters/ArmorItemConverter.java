@@ -169,7 +169,13 @@ public class ArmorItemConverter {
     }
 
     private int calculateFinalStat(int baseValue, int performance) {
-        return (int) Math.floor(baseValue * (0.5 * (1 + performance / 100.0)));
+        if (baseValue < 0) {
+            // ベース値がマイナスの場合: baseValue * (1 - (performance / 200))
+            return (int) Math.floor(baseValue * (1 - (performance / 200.0)));
+        } else {
+            // ベース値がプラスまたは0の場合: 既存の計算式
+            return (int) Math.floor(baseValue * (0.5 * (1 + performance / 100.0)));
+        }
     }
 
     private void setupBasicProperties(ItemMeta itemMeta, ItemBaseModel item) {
@@ -223,10 +229,9 @@ public class ArmorItemConverter {
 
         // Add armor stats using ArmorStats enum
         for (ArmorStats stat : ArmorStats.values()) {
-            int baseValue = getArmorStatValue(armor, stat);
-            if (baseValue != 0) {
-                int finalValue = statData.getFinalValue(stat);
-                int performanceValue = statData.getPerformanceValue(stat);
+            int finalValue = statData.getFinalValue(stat);
+            int performanceValue = statData.getPerformanceValue(stat);
+            if (finalValue != 0) { // 最終値が0以外（プラス・マイナス両方）を表示
                 lore.add(buildStatLine(stat.getDisplayName(), 
                         String.valueOf(finalValue), 
                         String.valueOf(performanceValue)));
@@ -249,11 +254,20 @@ public class ArmorItemConverter {
         int performance = Integer.parseInt(percent);
         TextColor percentColor = getPerformanceColor(performance);
         
+        // 値がマイナスの場合は赤色、プラスの場合は緑色で表示
+        TextColor valueColor;
+        try {
+            int numValue = Integer.parseInt(value);
+            valueColor = numValue < 0 ? NamedTextColor.RED : NamedTextColor.GREEN;
+        } catch (NumberFormatException e) {
+            valueColor = NamedTextColor.GREEN; // デフォルト
+        }
+        
         return Component.text(label + " : ")
             .color(NamedTextColor.WHITE)
             .decoration(TextDecoration.ITALIC, false)
             .append(Component.text(value)
-                .color(NamedTextColor.GREEN)
+                .color(valueColor)
                 .decoration(TextDecoration.ITALIC, false))
             .append(Component.text(" (")
                 .color(NamedTextColor.WHITE)
