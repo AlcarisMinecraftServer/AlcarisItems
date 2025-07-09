@@ -428,43 +428,8 @@ public class ArmorItemConverter {
         String armorType = container.getOrDefault(keys.get("armor_type"), PersistentDataType.STRING, "");
         int requiredLevel = container.getOrDefault(keys.get("required_level"), PersistentDataType.INTEGER, 0);
 
-        // 説明文の作成
-        List<Component> lore = new ArrayList<>();
-        
-        // レアリティの取得（既存のアイテムから）
-        int rarity = 1; // デフォルト値を1に設定
-        if (itemMeta.hasLore() && itemMeta.lore() != null && !itemMeta.lore().isEmpty()) {
-            Component firstLine = itemMeta.lore().get(0);
-            String firstLineText = firstLine.toString();
-            if (firstLineText.contains("レアリティ: ")) {
-                try {
-                    String rarityStr = firstLineText.split("レアリティ: ")[1].trim();
-                    rarity = Integer.parseInt(rarityStr);
-                } catch (NumberFormatException e) {
-                    // デフォルト値を使用
-                }
-            }
-        }
-
-        // 基本情報の追加
-        lore.add(Component.text("【" + net.alcaris.plugin.items.enums.TextureIcons.fromRarity(rarity).getUnicode() + "】 " + "レアリティ: " + rarity)
-            .color(TextColor.fromHexString(net.alcaris.plugin.items.enums.Colors.fromRarity(rarity).getHexCode()))
-            .decoration(TextDecoration.ITALIC, false));
-
-        // 区切り線
-        lore.add(Component.text("                          ")
-            .color(NamedTextColor.DARK_GRAY)
-            .decoration(TextDecoration.STRIKETHROUGH, true));
-
-        // 必要レベルと改造回数の表示
-        lore.add(buildInfoLine("必要レベル", String.valueOf(requiredLevel)));
-        lore.add(buildInfoLine("残り改造回数", String.valueOf(newMaxModification)));
-
-        // ステータスの表示（ArmorStatsを使用）
-        for (ArmorStats stat : ArmorStats.values()) {
-            addStatToLore(lore, armor, stat, statData);
-        }
-
+        // createLoreを使ってloreを再生成
+        List<Component> lore = createLore(baseModel, requiredLevel, newMaxModification, armor, statData);
         itemMeta.lore(lore);
         itemStack.setItemMeta(itemMeta);
         return true;
