@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.LinkedHashMap;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -458,5 +459,68 @@ public class ArmorItemConverter {
     private int getArmorStatValue(ItemArmorModel armor, ArmorStats stat) {
         // ArmorStatsのgetValueメソッドを使用して動的に値を取得
         return stat.getValue(armor);
+    }
+
+    /**
+     * 防具のステータス情報を取得する
+     * @param itemStack 対象のItemStack
+     * @return ステータス情報のMap（nullの場合は無効なアイテム）
+     */
+    public Map<String, Object> getArmorStats(ItemStack itemStack) {
+        if (itemStack == null || itemStack.getType().isAir()) {
+            return null;
+        }
+
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (itemMeta == null) {
+            return null;
+        }
+
+        PersistentDataContainer container = itemMeta.getPersistentDataContainer();
+        
+        // アイテムIDを取得してItemBaseModelを取得
+        String itemId = container.getOrDefault(keys.get("item_id"), PersistentDataType.STRING, "");
+        if (itemId.isEmpty()) {
+            return null;
+        }
+
+        Optional<ItemBaseModel> optModel = ((AlcarisCore) Bukkit.getPluginManager().getPlugin("AlcarisCore")).getItemRegistry().get(itemId);
+        if (optModel.isEmpty()) {
+            return null;
+        }
+        ItemBaseModel baseModel = optModel.get();
+        
+        // LinkedTreeMapをItemArmorModelに変換
+        ItemArmorModel armor = gson.fromJson(gson.toJson(baseModel.getData()), ItemArmorModel.class);
+        if (armor == null) {
+            return null;
+        }
+
+        // 現在の性能値を取得
+        ArmorStatData statData = new ArmorStatData();
+        for (ArmorStats stat : ArmorStats.values()) {
+            int perf = container.getOrDefault(keys.get(stat.getPerformanceKey()), PersistentDataType.INTEGER, 0);
+            statData.setPerformanceValue(stat, perf);
+        }
+
+        // 基礎値、最終値、性能値を計算
+        Map<String, Object> stats = new LinkedHashMap<>();
+        for (ArmorStats stat : ArmorStats.values()) {
+            int baseValue = getArmorStatValue(armor, stat);
+            if (baseValue != 0) { // 基礎値が0でないもののみ
+                int performance = statData.getPerformanceValue(stat);
+                int finalValue = calculateFinalStat(baseValue, performance);
+                
+                Map<String, Object> statInfo = new LinkedHashMap<>();
+                statInfo.put("base", baseValue);
+                statInfo.put("final", finalValue);
+                statInfo.put("performance", performance);
+                statInfo.put("displayName", stat.getDisplayName());
+                
+                stats.put(stat.getKey(), statInfo);
+            }
+        }
+
+        return stats;
     }
 } 
