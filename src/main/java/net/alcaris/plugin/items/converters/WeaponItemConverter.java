@@ -183,7 +183,7 @@ public class WeaponItemConverter {
             return Math.floor(baseValue * (1 - (performance / 200.0)) * 100) / 100.0;
         } else {
             // ベース値がプラスまたは0の場合: 既存の計算式
-            return Math.floor(baseValue * (0.5 * (1 + performance / 100.0)) * 100) / 100.0;
+        return Math.floor(baseValue * (0.5 * (1 + performance / 100.0)) * 100) / 100.0;
         }
     }
 
@@ -373,13 +373,13 @@ public class WeaponItemConverter {
         double attackDamage = statData.getFinalValue(WeaponStats.DAMAGE);
         if (attackDamage != 0) { // 0以外の値（プラス・マイナス両方）を適用
             double adjustedDamage = attackDamage - 1.0;
-            AttributeModifier damageModifier = new AttributeModifier(
-                new NamespacedKey(plugin, "weapon_attack_damage"),
-                adjustedDamage,
-                AttributeModifier.Operation.ADD_NUMBER,
-                EquipmentSlotGroup.MAINHAND
-            );
-            itemMeta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE, damageModifier);
+                AttributeModifier damageModifier = new AttributeModifier(
+                    new NamespacedKey(plugin, "weapon_attack_damage"),
+                    adjustedDamage,
+                    AttributeModifier.Operation.ADD_NUMBER,
+                    EquipmentSlotGroup.MAINHAND
+                );
+                itemMeta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE, damageModifier);
         }
         
         // Apply attack speed modifier (subtract 4 from base value)

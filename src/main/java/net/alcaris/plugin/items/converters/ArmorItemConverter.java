@@ -174,7 +174,7 @@ public class ArmorItemConverter {
             return (int) Math.floor(baseValue * (1 - (performance / 200.0)));
         } else {
             // ベース値がプラスまたは0の場合: 既存の計算式
-            return (int) Math.floor(baseValue * (0.5 * (1 + performance / 100.0)));
+        return (int) Math.floor(baseValue * (0.5 * (1 + performance / 100.0)));
         }
     }
 
@@ -229,8 +229,8 @@ public class ArmorItemConverter {
 
         // Add armor stats using ArmorStats enum
         for (ArmorStats stat : ArmorStats.values()) {
-            int finalValue = statData.getFinalValue(stat);
-            int performanceValue = statData.getPerformanceValue(stat);
+                int finalValue = statData.getFinalValue(stat);
+                int performanceValue = statData.getPerformanceValue(stat);
             if (finalValue != 0) { // 最終値が0以外（プラス・マイナス両方）を表示
                 lore.add(buildStatLine(stat.getDisplayName(), 
                         String.valueOf(finalValue), 
