@@ -1,7 +1,5 @@
 package net.alcaris.plugin.items;
 
-import net.alcaris.plugin.core.AlcarisCore;
-import net.alcaris.plugin.core.registry.ItemRegistry;
 import net.alcaris.plugin.items.commands.CustomItemCommand;
 import net.alcaris.plugin.items.converters.*;
 import net.alcaris.plugin.items.listeners.InventoryUpdateListener;

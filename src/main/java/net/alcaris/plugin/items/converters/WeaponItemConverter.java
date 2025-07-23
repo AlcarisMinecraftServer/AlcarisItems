@@ -13,7 +13,6 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -27,11 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.UUID;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 
 public class WeaponItemConverter {
     private final AlcarisItems plugin;

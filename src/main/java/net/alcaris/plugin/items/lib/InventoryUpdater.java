@@ -25,9 +25,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 

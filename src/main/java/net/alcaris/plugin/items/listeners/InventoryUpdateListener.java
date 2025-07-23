@@ -2,7 +2,6 @@ package net.alcaris.plugin.items.listeners;
 
 import net.alcaris.plugin.core.events.ItemRegistryReloadEvent;
 import net.alcaris.plugin.items.lib.InventoryUpdater;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
