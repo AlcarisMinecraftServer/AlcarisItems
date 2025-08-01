@@ -47,7 +47,7 @@ public class WeaponItemConverter {
         ROLL_ALL,           // 全てをロール
         FIXED_INCREMENT,    // 1つを固定値で5%あげる
         ROLL_SPECIFIC,      // 1つを指定してロール
-        ROLL_AND_KEEP_HIGH  // 1つを前回のロールと比べて、高い方を採用
+        ROLL_SPECIFIC_HIGH // 1つを前回のロールと比べて、高い方を採用
     }
 
     public WeaponItemConverter(final AlcarisItems plugin) {
@@ -482,7 +482,7 @@ public class WeaponItemConverter {
                 }
                 break;
 
-            case ROLL_AND_KEEP_HIGH:
+            case ROLL_SPECIFIC_HIGH:
                 if (specificStat != null) {
                     WeaponStats targetStat = WeaponStats.fromKey(specificStat);
                     if (targetStat != null) {

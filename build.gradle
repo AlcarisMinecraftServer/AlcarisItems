@@ -29,7 +29,7 @@ repositories {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
-    compileOnly files('libs/AlcarisCore-1.0.0-somen1000.jar')
+    compileOnly fileTree(dir: 'libs', include: '*.jar')
 }
 
 def targetJavaVersion = 21

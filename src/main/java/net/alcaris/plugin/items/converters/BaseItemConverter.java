@@ -87,12 +87,28 @@ public abstract class BaseItemConverter<T> {
                 .decoration(TextDecoration.ITALIC, false)
                 .append(Component.text("▸ " + getCategoryName())
                         .append(Component.text("【" + TextureIcons.fromRarity(item.getRarity()).getUnicode() + "】"))));
+        
+        // 保険情報を追加
+        addInsuranceLore(lore);
+    }
+
+    protected void addInsuranceLore(List<Component> lore) {
+        // 保険情報をloreの最後に追加するメソッド
+        // 子クラスでオーバーライド可能
     }
 
     protected void setIdentifiers(ItemMeta meta, ItemBaseModel item) {
         PersistentDataContainer container = meta.getPersistentDataContainer();
         container.set(new NamespacedKey(plugin, "item_id"), PersistentDataType.STRING, item.getId());
         container.set(new NamespacedKey(plugin, "item_version"), PersistentDataType.LONG, item.getVersion());
+        
+        // 保険データをPersistentDataに保存
+        setInsuranceData(container);
+    }
+
+    protected void setInsuranceData(PersistentDataContainer container) {
+        // 保険データをPersistentDataに保存するメソッド
+        // 子クラスでオーバーライド可能
     }
 
     protected abstract String getCategoryName();
