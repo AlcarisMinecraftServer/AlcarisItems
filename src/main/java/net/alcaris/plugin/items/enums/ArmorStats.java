@@ -7,32 +7,27 @@ import java.util.stream.Stream;
 import net.alcaris.plugin.core.model.item.ItemArmorModel;
 
 public enum ArmorStats {
-    HP("hp", "HP", "hp", "hp_perf", ItemArmorModel::getHp),
-    HPR("hpr", "HPR", "hpr", "hpr_perf", ItemArmorModel::getHpr),
-    MP("mp", "MP", "mp", "mp_perf", ItemArmorModel::getMp),
-    MPR("mpr", "MPR", "mpr", "mpr_perf", ItemArmorModel::getMpr),
-    ATK("atk", "ATK", "atk", "atk_perf", ItemArmorModel::getAtk),
-    DEF("def", "DEF", "def", "def_perf", ItemArmorModel::getDef),
-    MAT("mat", "MAT", "mat", "mat_perf", ItemArmorModel::getMat),
-    MDF("mdf", "MDF", "mdf", "mdf_perf", ItemArmorModel::getMdf),
-    DEX("dex", "DEX", "dex", "dex_perf", ItemArmorModel::getDex),
-    SPEED("speed", "SPEED", "speed", "speed_perf", ItemArmorModel::getSpeed),
-    CRT("crt", "CRT", "crt", "crt_perf", ItemArmorModel::getCrt),
-    CRD("crd", "CRD", "crd", "crd_perf", ItemArmorModel::getCrd),
-    LUK("luk", "LUK", "luk", "luk_perf", ItemArmorModel::getLuk);
+    HP("hp", "HP", ItemArmorModel::getHp),
+    HPR("hpr", "HPR", ItemArmorModel::getHpr),
+    MP("mp", "MP", ItemArmorModel::getMp),
+    MPR("mpr", "MPR", ItemArmorModel::getMpr),
+    ATK("atk", "ATK", ItemArmorModel::getAtk),
+    DEF("def", "DEF", ItemArmorModel::getDef),
+    MAT("mat", "MAT", ItemArmorModel::getMat),
+    MDF("mdf", "MDF", ItemArmorModel::getMdf),
+    DEX("dex", "DEX", ItemArmorModel::getDex),
+    SPEED("speed", "SPEED", ItemArmorModel::getSpeed),
+    CRT("crt", "CRT", ItemArmorModel::getCrt),
+    CRD("crd", "CRD", ItemArmorModel::getCrd),
+    LUK("luk", "LUK", ItemArmorModel::getLuk);
 
     private final String key;
     private final String displayName;
-    private final String valueKey;
-    private final String performanceKey;
-    private final Function<ItemArmorModel, Integer> getter;
+    private final Function<ItemArmorModel, Float> getter;
 
-    ArmorStats(String key, String displayName, String valueKey, String performanceKey, 
-               Function<ItemArmorModel, Integer> getter) {
+    ArmorStats(String key, String displayName, Function<ItemArmorModel, Float> getter) {
         this.key = key;
         this.displayName = displayName;
-        this.valueKey = valueKey;
-        this.performanceKey = performanceKey;
         this.getter = getter;
     }
 
@@ -44,18 +39,15 @@ public enum ArmorStats {
         return displayName;
     }
 
-    public String getValueKey() {
-        return valueKey;
-    }
 
     public String getPerformanceKey() {
-        return performanceKey;
+        return key + "_perf";
     }
 
     /**
      * ItemArmorModelから対応するステータス値を取得
      */
-    public int getValue(ItemArmorModel armor) {
+    public double getValue(ItemArmorModel armor) {
         return getter.apply(armor);
     }
 
@@ -91,7 +83,7 @@ public enum ArmorStats {
      */
     public static String[] getAllValueKeys() {
         return Arrays.stream(values())
-                .map(ArmorStats::getValueKey)
+                .map(ArmorStats::getKey)
                 .toArray(String[]::new);
     }
 
@@ -109,7 +101,7 @@ public enum ArmorStats {
      */
     public static String[] getAllPersistentKeys() {
         List<String> keys = Arrays.stream(values())
-                .flatMap(stat -> Stream.of(stat.getValueKey(), stat.getPerformanceKey()))
+                .flatMap(stat -> Stream.of(stat.getKey(), stat.getPerformanceKey()))
                 .toList();
         return keys.toArray(new String[0]);
     }

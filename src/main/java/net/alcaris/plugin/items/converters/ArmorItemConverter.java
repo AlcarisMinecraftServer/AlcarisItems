@@ -62,7 +62,7 @@ public class ArmorItemConverter {
         
         // ArmorStatsから自動的にキーを生成
         for (ArmorStats stat : ArmorStats.values()) {
-            keyMap.put(stat.getValueKey(), new NamespacedKey(plugin, stat.getValueKey()));
+            keyMap.put(stat.getKey(), new NamespacedKey(plugin, stat.getKey()));
             keyMap.put(stat.getPerformanceKey(), new NamespacedKey(plugin, stat.getPerformanceKey()));
         }
         
@@ -144,7 +144,7 @@ public class ArmorItemConverter {
 
         // Calculate final stats using ArmorStatData
         for (ArmorStats stat : ArmorStats.values()) {
-            int baseValue = getArmorStatValue(armor, stat);
+            double baseValue = getArmorStatValue(armor, stat);
             int performance = statData.getPerformanceValue(stat);
             int finalValue = calculateFinalStat(baseValue, performance);
             statData.setFinalValue(stat, finalValue);
@@ -169,7 +169,7 @@ public class ArmorItemConverter {
         return itemStack;
     }
 
-    private int calculateFinalStat(int baseValue, int performance) {
+    private int calculateFinalStat(double baseValue, int performance) {
         if (baseValue < 0) {
             // ベース値がマイナスの場合: baseValue * (1 - (performance / 200))
             return (int) Math.floor(baseValue * (1 - (performance / 200.0)));
@@ -324,7 +324,7 @@ public class ArmorItemConverter {
         
         // ArmorStatsを使用してデータを設定
         for (ArmorStats stat : ArmorStats.values()) {
-            container.set(keys.get(stat.getValueKey()), PersistentDataType.INTEGER, statData.getFinalValue(stat));
+            container.set(keys.get(stat.getKey()), PersistentDataType.INTEGER, statData.getFinalValue(stat));
             container.set(keys.get(stat.getPerformanceKey()), PersistentDataType.INTEGER, statData.getPerformanceValue(stat));
         }
     }
@@ -413,7 +413,7 @@ public class ArmorItemConverter {
 
         // アイテムのステータスを再計算（基礎値はItemArmorModelから取得）
         for (ArmorStats stat : ArmorStats.values()) {
-            int baseValue = getArmorStatValue(armor, stat);
+            double baseValue = getArmorStatValue(armor, stat);
             int performance = statData.getPerformanceValue(stat);
             int finalValue = calculateFinalStat(baseValue, performance);
             statData.setFinalValue(stat, finalValue);
@@ -421,7 +421,7 @@ public class ArmorItemConverter {
 
         // 最終ステータスを更新
         for (ArmorStats stat : ArmorStats.values()) {
-            container.set(keys.get(stat.getValueKey()), PersistentDataType.INTEGER, statData.getFinalValue(stat));
+            container.set(keys.get(stat.getKey()), PersistentDataType.INTEGER, statData.getFinalValue(stat));
         }
 
         // アイテムの説明文を更新
@@ -441,7 +441,7 @@ public class ArmorItemConverter {
      */
     private void addStatToLore(List<Component> lore, ItemArmorModel armor, ArmorStats stat, 
                               ArmorStatData statData) {
-        int baseValue = getArmorStatValue(armor, stat);
+        double baseValue = getArmorStatValue(armor, stat);
         if (baseValue != 0) {
             lore.add(buildStatLine(stat.getDisplayName(), 
                     String.valueOf(statData.getFinalValue(stat)), 
@@ -456,7 +456,7 @@ public class ArmorItemConverter {
      * @param stat 取得したいステータス
      * @return 対応する基礎値
      */
-    private int getArmorStatValue(ItemArmorModel armor, ArmorStats stat) {
+    private double getArmorStatValue(ItemArmorModel armor, ArmorStats stat) {
         // ArmorStatsのgetValueメソッドを使用して動的に値を取得
         return stat.getValue(armor);
     }
@@ -506,7 +506,7 @@ public class ArmorItemConverter {
         // 基礎値、最終値、性能値を計算
         Map<String, Object> stats = new LinkedHashMap<>();
         for (ArmorStats stat : ArmorStats.values()) {
-            int baseValue = getArmorStatValue(armor, stat);
+            double baseValue = getArmorStatValue(armor, stat);
             if (baseValue != 0) { // 基礎値が0でないもののみ
                 int performance = statData.getPerformanceValue(stat);
                 int finalValue = calculateFinalStat(baseValue, performance);

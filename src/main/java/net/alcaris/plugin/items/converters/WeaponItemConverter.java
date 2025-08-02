@@ -70,7 +70,7 @@ public class WeaponItemConverter {
         
         // WeaponStatsから自動的にキーを生成
         for (WeaponStats stat : WeaponStats.values()) {
-            keyMap.put(stat.getValueKey(), new NamespacedKey(plugin, stat.getValueKey()));
+            keyMap.put(stat.getKey(), new NamespacedKey(plugin, stat.getKey()));
             keyMap.put(stat.getPerformanceKey(), new NamespacedKey(plugin, stat.getPerformanceKey()));
         }
         
@@ -351,9 +351,9 @@ public class WeaponItemConverter {
                 stat == WeaponStats.ATK || stat == WeaponStats.DEF || stat == WeaponStats.MDF || 
                 stat == WeaponStats.CRT || stat == WeaponStats.CRD || stat == WeaponStats.SPD || 
                 stat == WeaponStats.LUK) {
-                container.set(keys.get(stat.getValueKey()), PersistentDataType.INTEGER, (int)statData.getFinalValue(stat));
+                container.set(keys.get(stat.getKey()), PersistentDataType.INTEGER, (int)statData.getFinalValue(stat));
             } else {
-                container.set(keys.get(stat.getValueKey()), PersistentDataType.DOUBLE, statData.getFinalValue(stat));
+                container.set(keys.get(stat.getKey()), PersistentDataType.DOUBLE, statData.getFinalValue(stat));
             }
             // 性能値を保存
             container.set(keys.get(stat.getPerformanceKey()), PersistentDataType.INTEGER, statData.getPerformanceValue(stat));
@@ -518,9 +518,9 @@ public class WeaponItemConverter {
                 stat == WeaponStats.ATK || stat == WeaponStats.DEF || stat == WeaponStats.MDF || 
                 stat == WeaponStats.CRT || stat == WeaponStats.CRD || stat == WeaponStats.SPD || 
                 stat == WeaponStats.LUK) {
-                container.set(keys.get(stat.getValueKey()), PersistentDataType.INTEGER, (int)statData.getFinalValue(stat));
+                container.set(keys.get(stat.getKey()), PersistentDataType.INTEGER, (int)statData.getFinalValue(stat));
             } else {
-                container.set(keys.get(stat.getValueKey()), PersistentDataType.DOUBLE, statData.getFinalValue(stat));
+                container.set(keys.get(stat.getKey()), PersistentDataType.DOUBLE, statData.getFinalValue(stat));
             }
         }
 
