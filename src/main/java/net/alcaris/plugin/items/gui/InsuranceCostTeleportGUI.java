@@ -2,6 +2,7 @@ package net.alcaris.plugin.items.gui;
 
 import net.alcaris.plugin.items.AlcarisItems;
 import net.alcaris.plugin.items.lib.ItemsRepository;
+import net.alcaris.plugin.items.enums.InsuranceType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -50,18 +51,26 @@ public class InsuranceCostTeleportGUI implements Listener {
         pm.registerEvents(this, plugin);
     }
 
+    private int calculateCost(Player player) {
+        int total = additionalCost;
+        for (ItemStack stack : player.getInventory().getContents()) {
+            if (stack == null || stack.getType().isAir()) continue;
+            if (!repository.hasInsurance(stack)) continue;
+            InsuranceType type = repository.getInsuranceType(stack);
+            if (type == null) type = InsuranceType.STANDARD;
+            total += type.getBaseDiamondCost() * stack.getAmount();
+        }
+        return total;
+    }
+
     private void updateCostDisplay(Player player) {
-        int insuredCount = countInsuredItems(player);
-
-        int cost = insuredCount * costPerItem + additionalCost;
-
+        int cost = calculateCost(player);
         ItemStack confirm = new ItemStack(Material.DIAMOND);
         ItemMeta meta = confirm.getItemMeta();
         meta.displayName(Component.text("支払ってテレポート (費用: " + cost + " ダイヤ)", NamedTextColor.WHITE)
                 .decoration(TextDecoration.ITALIC, false));
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         confirm.setItemMeta(meta);
-
         inventory.setItem(BUTTON_CONFIRM_SLOT, confirm);
     }
 
@@ -87,36 +96,17 @@ public class InsuranceCostTeleportGUI implements Listener {
     }
 
     private void handleConfirm(Player player) {
-        int insuredCount = countInsuredItems(player);
-
-        int cost = insuredCount * costPerItem + additionalCost;
+        int cost = calculateCost(player);
         int diamondsAvailable = countDiamonds(player);
-
         if (diamondsAvailable < cost) {
             player.sendMessage(Component.text("ダイヤモンドが不足しています。必要: " + cost, NamedTextColor.RED));
             return;
         }
-
-        // ダイヤモンドを削除
         removeDiamonds(player, cost);
-
-        // テレポート（ブロックの中心に配置するため +0.5）
         Location teleportLocation = targetLocation.clone().add(0.5, 0, 0.5);
         player.teleport(teleportLocation);
         player.sendMessage(Component.text("テレポートしました！", NamedTextColor.GREEN));
-
-        // Close GUI
         closeLater(player);
-    }
-
-    private int countInsuredItems(Player player) {
-        int count = 0;
-        for (ItemStack stack : player.getInventory().getContents()) {
-            if (stack != null && repository.hasInsurance(stack)) {
-                count += stack.getAmount();
-            }
-        }
-        return count;
     }
 
     private int countDiamonds(Player player) {

@@ -21,6 +21,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.event.HandlerList;
+import net.alcaris.plugin.items.enums.InsuranceType;
+import java.util.Map;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,8 +37,18 @@ public class InsuranceApplyGUI implements Listener {
     private final Inventory inventory;
 
     private static final int INVENTORY_SIZE = 54; // 6行 * 9列
-    private static final int BUTTON_APPLY_SLOT = 48; // 緑のガラス: 保険をつける
-    private static final int BUTTON_REMOVE_SLOT = 50; // 赤のガラス: 保険を外す
+    private static final int BUTTON_APPLY_SAFE_SLOT = 45;
+    private static final int BUTTON_APPLY_QUALITY_SLOT = 46;
+    private static final int BUTTON_APPLY_STANDARD_SLOT = 47;
+    private static final int BUTTON_APPLY_PRAY_SLOT = 48;
+    private static final int BUTTON_REMOVE_SLOT = 50; // 変更なし
+
+    private static final Map<Integer, InsuranceType> APPLY_BUTTON_MAP = Map.of(
+            BUTTON_APPLY_SAFE_SLOT, InsuranceType.SAFE,
+            BUTTON_APPLY_QUALITY_SLOT, InsuranceType.QUALITY,
+            BUTTON_APPLY_STANDARD_SLOT, InsuranceType.STANDARD,
+            BUTTON_APPLY_PRAY_SLOT, InsuranceType.PRAY
+    );
     private static final int MAX_DEPOSIT_SLOT = 45; // 0-44がアイテムエリア
 
     public InsuranceApplyGUI(AlcarisItems plugin, ItemsRepository repository) {
@@ -45,7 +57,10 @@ public class InsuranceApplyGUI implements Listener {
         this.inventory = Bukkit.createInventory(null, INVENTORY_SIZE, Component.text("保険管理", NamedTextColor.GOLD));
 
         // ボタンをセットアップ
-        inventory.setItem(BUTTON_APPLY_SLOT, createButton(Material.LIME_STAINED_GLASS_PANE, "全てに保険をつける"));
+        inventory.setItem(BUTTON_APPLY_SAFE_SLOT, createButton(Material.DIAMOND_BLOCK, "安心保険(100%)をつける"));
+        inventory.setItem(BUTTON_APPLY_QUALITY_SLOT, createButton(Material.GOLD_BLOCK, "良質保険(95%)をつける"));
+        inventory.setItem(BUTTON_APPLY_STANDARD_SLOT, createButton(Material.IRON_BLOCK, "通常保険(80%)をつける"));
+        inventory.setItem(BUTTON_APPLY_PRAY_SLOT, createButton(Material.COPPER_BLOCK, "お祈り保険(50%)をつける"));
         inventory.setItem(BUTTON_REMOVE_SLOT, createButton(Material.RED_STAINED_GLASS_PANE, "全ての保険を外す"));
 
         // イベント登録
@@ -78,12 +93,14 @@ public class InsuranceApplyGUI implements Listener {
         boolean clickedTop = event.getClickedInventory() != null && event.getClickedInventory().equals(inventory);
 
         if (clickedTop) {
-            // ボタンエリアはキャンセル
-            if (rawSlot == BUTTON_APPLY_SLOT) {
+            // 保険適用ボタン
+            if (APPLY_BUTTON_MAP.containsKey(rawSlot)) {
                 event.setCancelled(true);
-                applyInsuranceToAll((Player) event.getWhoClicked());
+                InsuranceType type = APPLY_BUTTON_MAP.get(rawSlot);
+                applyInsuranceToAll((Player) event.getWhoClicked(), type);
                 return;
             }
+            // 保険解除
             if (rawSlot == BUTTON_REMOVE_SLOT) {
                 event.setCancelled(true);
                 removeInsuranceFromAll((Player) event.getWhoClicked());
@@ -99,16 +116,16 @@ public class InsuranceApplyGUI implements Listener {
         // それ以外（プレイヤーインベントリなど）はデフォルト動作
     }
 
-    private void applyInsuranceToAll(Player player) {
+    private void applyInsuranceToAll(Player player, InsuranceType type) {
         int successCount = 0;
         for (int i = 0; i < MAX_DEPOSIT_SLOT; i++) {
             ItemStack item = inventory.getItem(i);
             if (item == null || item.getType().isAir()) continue;
-            if (repository.addInsurance(item)) {
+            if (repository.addInsurance(item, type)) {
                 successCount++;
             }
         }
-        player.sendMessage(Component.text(successCount + " 個のアイテムに保険をつけました。", NamedTextColor.GREEN));
+        player.sendMessage(Component.text(successCount + " 個のアイテムに " + type.getDisplayName() + " を適用しました。", NamedTextColor.GREEN));
         closeLater(player);
     }
 

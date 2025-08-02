@@ -24,12 +24,15 @@ import net.alcaris.plugin.items.gui.InsuranceApplyGUI;
 import net.alcaris.plugin.items.gui.InsuranceCostTeleportGUI;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import net.alcaris.plugin.items.enums.InsuranceType;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ItemsRepository {
     private final AlcarisItems plugin = AlcarisItems.getInstance();
     private final ItemRegistry itemRegistry;
     private final NamespacedKey itemIdKey;
     private final NamespacedKey insuranceKey;
+    private final NamespacedKey insuranceTypeKey;
 
     public ItemsRepository() {
         AlcarisCore core = (AlcarisCore) Bukkit.getPluginManager().getPlugin("AlcarisCore");
@@ -39,6 +42,7 @@ public class ItemsRepository {
         this.itemRegistry = core.getItemRegistry();
         this.itemIdKey = new NamespacedKey(plugin, "item_id");
         this.insuranceKey = new NamespacedKey(plugin, "insurance");
+        this.insuranceTypeKey = new NamespacedKey(plugin, "insurance_type");
     }
 
     public ItemStack createItem(String id, int amount) {
@@ -103,40 +107,28 @@ public class ItemsRepository {
      * @return 成功した場合true
      */
     public boolean addInsurance(ItemStack itemStack) {
+        return addInsurance(itemStack, InsuranceType.STANDARD);
+    }
+
+    public boolean addInsurance(ItemStack itemStack, InsuranceType type) {
         if (itemStack == null || itemStack.getType().isAir()) {
             return false;
         }
-
         ItemMeta itemMeta = itemStack.getItemMeta();
         if (itemMeta == null) {
             return false;
         }
-
         PersistentDataContainer container = itemMeta.getPersistentDataContainer();
-        
-        // 保険データをPersistentDataに保存
         container.set(insuranceKey, PersistentDataType.BOOLEAN, true);
-        
-        // loreに保険情報を追加
+        container.set(insuranceTypeKey, PersistentDataType.STRING, type.name());
         List<Component> lore = itemMeta.lore();
-        if (lore == null) {
-            lore = new ArrayList<>();
-        }
-        
-        // 既存の保険情報を削除
-        lore.removeIf(component -> {
-            String text = component.toString();
-            return text.contains("このアイテムは保険にかけられています");
-        });
-        
-        // 保険情報を追加
-        lore.add(Component.text("このアイテムは保険にかけられています")
+        if (lore == null) lore = new ArrayList<>();
+        lore.removeIf(c -> c.toString().contains("保険"));
+        lore.add(Component.text("このアイテムは" + type.getDisplayName() + "に加入しています")
                 .color(NamedTextColor.GREEN)
                 .decoration(TextDecoration.ITALIC, false));
-        
         itemMeta.lore(lore);
         itemStack.setItemMeta(itemMeta);
-        
         return true;
     }
 
@@ -160,13 +152,14 @@ public class ItemsRepository {
         
         // 保険データをPersistentDataから削除
         container.remove(insuranceKey);
+        container.remove(insuranceTypeKey);
         
         // loreから保険情報を削除
         List<Component> lore = itemMeta.lore();
         if (lore != null) {
             lore.removeIf(component -> {
                 String text = component.toString();
-                return text.contains("このアイテムは保険にかけられています");
+                return text.contains("このアイテムは保険にかけられています") || text.contains("このアイテムは");
             });
             
             itemMeta.lore(lore);
@@ -197,6 +190,46 @@ public class ItemsRepository {
         Boolean insurance = container.get(insuranceKey, PersistentDataType.BOOLEAN);
         
         return insurance != null && insurance;
+    }
+
+    public InsuranceType getInsuranceType(ItemStack itemStack) {
+        if (!hasInsurance(itemStack)) {
+            return null;
+        }
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta == null) {
+            return InsuranceType.STANDARD;
+        }
+        PersistentDataContainer container = meta.getPersistentDataContainer();
+        String typeName = container.get(insuranceTypeKey, PersistentDataType.STRING);
+        if (typeName == null) {
+            return InsuranceType.STANDARD;
+        }
+        try {
+            return InsuranceType.valueOf(typeName);
+        } catch (IllegalArgumentException e) {
+            return InsuranceType.STANDARD;
+        }
+    }
+
+    public void applyItemLoss(Player player) {
+        if (player == null) return;
+        ItemStack[] contents = player.getInventory().getContents();
+        for (int i = 0; i < contents.length; i++) {
+            ItemStack stack = contents[i];
+            if (stack == null || stack.getType().isAir()) continue;
+            if (!hasInsurance(stack)) {
+                player.getInventory().setItem(i, null);
+                continue;
+            }
+            InsuranceType type = getInsuranceType(stack);
+            if (type == null) type = InsuranceType.STANDARD;
+            double chance = type.getLossProbability();
+            if (ThreadLocalRandom.current().nextDouble() < chance) {
+                player.getInventory().setItem(i, null);
+            }
+        }
+        player.updateInventory();
     }
 
     /**
