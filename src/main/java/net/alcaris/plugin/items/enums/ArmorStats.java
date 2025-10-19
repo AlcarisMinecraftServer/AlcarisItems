@@ -17,6 +17,7 @@ public enum ArmorStats {
     MDF("mdf", "MDF", ItemArmorModel::getMdf),
     DEX("dex", "DEX", ItemArmorModel::getDex),
     SPEED("speed", "SPEED", ItemArmorModel::getSpeed),
+    MOVEMENT_SPEED("movementspeed", "移動速度", ItemArmorModel::getMovementSpeed),
     CRT("crt", "CRT", ItemArmorModel::getCrt),
     CRD("crd", "CRD", ItemArmorModel::getCrd),
     LUK("luk", "LUK", ItemArmorModel::getLuk);

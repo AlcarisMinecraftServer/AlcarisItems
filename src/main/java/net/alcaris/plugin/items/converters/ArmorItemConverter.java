@@ -19,6 +19,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.Bukkit;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.inventory.EquipmentSlotGroup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -157,6 +160,9 @@ public class ArmorItemConverter {
         if (itemMeta instanceof Damageable damageable && durability > 0) {
             damageable.setMaxDamage(durability);
         }
+        
+        // Apply attribute modifiers (e.g., movement speed)
+        applyAttributeModifiers(itemMeta, statData);
         
         // Set lore
         List<Component> lore = createLore(item, requirement, maxModification, armor, statData);
@@ -307,6 +313,30 @@ public class ArmorItemConverter {
             return TextColor.fromHexString("#FF4500"); // オレンジレッド
         } else {
             return TextColor.fromHexString("#FF0000"); // 赤
+        }
+    }
+
+    /**
+     * Apply attribute modifiers to armor items. Removes default defense related
+     * attributes and applies movement speed based on ArmorStatData.
+     */
+    private void applyAttributeModifiers(ItemMeta itemMeta, ArmorStatData statData) {
+        // Remove default attribute modifiers
+        itemMeta.removeAttributeModifier(Attribute.GENERIC_ARMOR);
+        itemMeta.removeAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS);
+        itemMeta.removeAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE);
+        itemMeta.removeAttributeModifier(Attribute.GENERIC_MOVEMENT_SPEED);
+
+        // Apply movement speed modifier from MOVEMENT_SPEED stat (value treated as ‰)
+        int speedValue = statData.getFinalValue(ArmorStats.MOVEMENT_SPEED);
+        if (speedValue != 0) {
+            AttributeModifier movementModifier = new AttributeModifier(
+                new NamespacedKey(plugin, "armor_movement_speed"),
+                speedValue / 1000.0,
+                AttributeModifier.Operation.ADD_NUMBER,
+                EquipmentSlotGroup.ARMOR
+            );
+            itemMeta.addAttributeModifier(Attribute.GENERIC_MOVEMENT_SPEED, movementModifier);
         }
     }
 

@@ -57,10 +57,10 @@ public class InsuranceApplyGUI implements Listener {
         this.inventory = Bukkit.createInventory(null, INVENTORY_SIZE, Component.text("保険管理", NamedTextColor.GOLD));
 
         // ボタンをセットアップ
-        inventory.setItem(BUTTON_APPLY_SAFE_SLOT, createButton(Material.DIAMOND_BLOCK, "安心保険(100%)をつける"));
-        inventory.setItem(BUTTON_APPLY_QUALITY_SLOT, createButton(Material.GOLD_BLOCK, "良質保険(95%)をつける"));
-        inventory.setItem(BUTTON_APPLY_STANDARD_SLOT, createButton(Material.IRON_BLOCK, "通常保険(80%)をつける"));
-        inventory.setItem(BUTTON_APPLY_PRAY_SLOT, createButton(Material.COPPER_BLOCK, "お祈り保険(50%)をつける"));
+        inventory.setItem(BUTTON_APPLY_SAFE_SLOT, createButton(Material.DIAMOND_BLOCK, "安心保険(ベース料金5000G,100%)をつける"));
+        inventory.setItem(BUTTON_APPLY_QUALITY_SLOT, createButton(Material.GOLD_BLOCK, "良質保険(ベース料金2000G,95%)をつける"));
+        inventory.setItem(BUTTON_APPLY_STANDARD_SLOT, createButton(Material.IRON_BLOCK, "通常保険(ベース料金500G,80%)をつける"));
+        inventory.setItem(BUTTON_APPLY_PRAY_SLOT, createButton(Material.COPPER_BLOCK, "お祈り保険(ベース料金100G,50%)をつける"));
         inventory.setItem(BUTTON_REMOVE_SLOT, createButton(Material.RED_STAINED_GLASS_PANE, "全ての保険を外す"));
 
         // イベント登録

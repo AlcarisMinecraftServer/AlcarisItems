@@ -7,8 +7,18 @@ description: Plugin to implement RPG-style items in Minecraft.
 website: https://www.alcaris.net
 depend:
   - AlcarisCore
+  - Jecon
 
 commands:
   custom-item:
     description: カスタムアイテムを取得するコマンド
     usage: /custom-item give <id> [amount]
+  item-loss:
+    description: アイテムロストを適用するコマンド (コンソール専用)
+    usage: /item-loss <player>
+  item-sell:
+    description: アイテムを売却するGUIを開く
+    usage: /item-sell
+  money-convert:
+    description: お金をmoney_1000アイテムに変換する
+    usage: /money-convert

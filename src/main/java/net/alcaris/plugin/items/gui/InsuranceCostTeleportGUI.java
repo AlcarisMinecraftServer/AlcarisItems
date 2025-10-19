@@ -14,7 +14,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -22,6 +21,8 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
+import jp.jyn.jecon.Jecon;
+import java.math.BigDecimal;
 
 public class InsuranceCostTeleportGUI implements Listener {
 
@@ -30,6 +31,7 @@ public class InsuranceCostTeleportGUI implements Listener {
     private final Location targetLocation;
     private final int costPerItem;
     private final int additionalCost;
+    private final Jecon jecon;
 
     private final Inventory inventory;
 
@@ -43,6 +45,7 @@ public class InsuranceCostTeleportGUI implements Listener {
         this.targetLocation = targetLocation;
         this.costPerItem = costPerItem;
         this.additionalCost = additionalCost;
+        this.jecon = plugin.getJecon();
 
         this.inventory = Bukkit.createInventory(null, INVENTORY_SIZE, Component.text("保険-支払い+テレポート", NamedTextColor.AQUA));
 
@@ -58,16 +61,16 @@ public class InsuranceCostTeleportGUI implements Listener {
             if (!repository.hasInsurance(stack)) continue;
             InsuranceType type = repository.getInsuranceType(stack);
             if (type == null) type = InsuranceType.STANDARD;
-            total += type.getBaseDiamondCost() * stack.getAmount();
+            total += type.getBaseDiamondCost() * costPerItem * stack.getAmount();
         }
         return total;
     }
 
     private void updateCostDisplay(Player player) {
         int cost = calculateCost(player);
-        ItemStack confirm = new ItemStack(Material.DIAMOND);
+        ItemStack confirm = new ItemStack(Material.PAPER);
         ItemMeta meta = confirm.getItemMeta();
-        meta.displayName(Component.text("支払ってテレポート (費用: " + cost + " ダイヤ)", NamedTextColor.WHITE)
+        meta.displayName(Component.text("支払ってテレポート (費用: " + cost + "G)", NamedTextColor.WHITE)
                 .decoration(TextDecoration.ITALIC, false));
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         confirm.setItemMeta(meta);
@@ -97,15 +100,41 @@ public class InsuranceCostTeleportGUI implements Listener {
 
     private void handleConfirm(Player player) {
         int cost = calculateCost(player);
-        int diamondsAvailable = countDiamonds(player);
-        if (diamondsAvailable < cost) {
-            player.sendMessage(Component.text("ダイヤモンドが不足しています。必要: " + cost, NamedTextColor.RED));
+        if (cost < 0) {
+            player.sendMessage(Component.text("費用が計算できません。", NamedTextColor.RED));
             return;
         }
-        removeDiamonds(player, cost);
+
+        boolean paid = false;
+        if (jecon != null) {
+            java.util.UUID uuid = player.getUniqueId();
+            java.util.Optional<BigDecimal> opt = jecon.getRepository().getDecimal(uuid);
+            BigDecimal balance = opt.orElse(BigDecimal.ZERO);
+            if (balance.compareTo(BigDecimal.valueOf(cost)) < 0) {
+                player.sendMessage(Component.text("残高が不足しています。必要: " + cost + "G", NamedTextColor.RED));
+                return;
+            }
+            jecon.getRepository().set(uuid, balance.subtract(BigDecimal.valueOf(cost)));
+            paid = true;
+        }
+        if (!paid) {
+            int diamondsAvailable = countDiamonds(player);
+            if (diamondsAvailable < cost) {
+                player.sendMessage(Component.text("ダイヤモンドが不足しています。必要: " + cost, NamedTextColor.RED));
+                return;
+            }
+            removeDiamonds(player, cost);
+        }
+
         Location teleportLocation = targetLocation.clone().add(0.5, 0, 0.5);
         player.teleport(teleportLocation);
+
+        // Invincibility command for 600 seconds
+        String invincibleCmd = "alcarisplayer:invincible " + player.getName() + " 600";
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), invincibleCmd);
+
         player.sendMessage(Component.text("テレポートしました！", NamedTextColor.GREEN));
+        
         closeLater(player);
     }
 

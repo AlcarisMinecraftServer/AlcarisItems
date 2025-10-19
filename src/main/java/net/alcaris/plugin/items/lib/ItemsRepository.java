@@ -291,4 +291,42 @@ public class ItemsRepository {
     public void openInsuranceTeleportGUI(Player player, Location targetLocation, int costPerItem, int additionalCost) {
         new InsuranceCostTeleportGUI(plugin, this, targetLocation, costPerItem, additionalCost).open(player);
     }
+
+    // -----------------------
+    // 売却関連メソッド
+    // -----------------------
+    /**
+     * アイテム1スタックあたりの売却額を取得します。
+     * getPrice() の sell フィールドを参照し、sellable でない場合は 0 を返します。
+     */
+    public int getSellPrice(ItemStack itemStack) {
+        if (itemStack == null || itemStack.getType().isAir()) return 0;
+        String itemId = getItemId(itemStack);
+        if (itemId == null) return 0;
+        Optional<ItemBaseModel> optModel = itemRegistry.get(itemId);
+        if (optModel.isEmpty()) return 0;
+        ItemBaseModel model = optModel.get();
+        if (model.getPrice() == null || !model.getPrice().getCanSell()) return 0;
+        return model.getPrice().getSell();
+    }
+
+    /**
+     * 対象アイテムが売却可能か判定します。
+     */
+    public boolean canSell(ItemStack itemStack) {
+        if (itemStack == null || itemStack.getType().isAir()) return false;
+        String itemId = getItemId(itemStack);
+        if (itemId == null) return false;
+        Optional<ItemBaseModel> optModel = itemRegistry.get(itemId);
+        if (optModel.isEmpty()) return false;
+        ItemBaseModel model = optModel.get();
+        return model.getPrice() != null && model.getPrice().getCanSell();
+    }
+
+    /**
+     * 売却GUIを開くAPI
+     */
+    public void openItemSellGUI(Player player) {
+        new net.alcaris.plugin.items.gui.SellItemGUI(plugin, this).open(player);
+    }
 }
