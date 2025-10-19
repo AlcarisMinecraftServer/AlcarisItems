@@ -1,16 +1,18 @@
 package net.alcaris.plugin.items;
 
-import net.alcaris.plugin.core.AlcarisCore;
-import net.alcaris.plugin.core.registry.ItemRegistry;
+// removed unused core imports
 import net.alcaris.plugin.items.commands.CustomItemCommand;
 import net.alcaris.plugin.items.commands.ItemLossCommand;
 import net.alcaris.plugin.items.converters.*;
 import net.alcaris.plugin.items.listeners.InventoryUpdateListener;
+import net.alcaris.plugin.items.listeners.MagicListener;
 import net.alcaris.plugin.items.lib.ItemsRepository;
 import net.alcaris.plugin.items.lib.InventoryUpdater;
+import net.alcaris.plugin.items.magic.MagicRepository;
+import net.alcaris.plugin.items.magic.MagicService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.Bukkit;
+// removed unused Bukkit import
 import org.bukkit.plugin.java.JavaPlugin;
 import jp.jyn.jecon.Jecon;
 import org.bukkit.plugin.Plugin;
@@ -25,6 +27,8 @@ public final class AlcarisItems extends JavaPlugin {
     private static ItemsRepository repository;
     private static ItemConverter itemConverter;
     private Jecon jecon;
+    private MagicRepository magicRepository;
+    private MagicService magicService;
 
     @Override
     public void onEnable() {
@@ -80,6 +84,14 @@ public final class AlcarisItems extends JavaPlugin {
 
         // register money-convert command
         Objects.requireNonNull(this.getCommand("money-convert")).setExecutor(new net.alcaris.plugin.items.commands.MoneyConvertCommand(this, repository));
+
+        // Magic system
+        this.magicRepository = new MagicRepository(this);
+        this.magicRepository.load();
+        this.magicService = new MagicService(this, magicRepository);
+        getServer().getPluginManager().registerEvents(new MagicListener(this, magicService), this);
+        Objects.requireNonNull(this.getCommand("magic")).setExecutor(new net.alcaris.plugin.items.commands.MagicCommand(magicRepository, magicService));
+        Objects.requireNonNull(this.getCommand("magic")).setTabCompleter(new net.alcaris.plugin.items.commands.MagicCommand(magicRepository, magicService));
     }
 
     public static AlcarisItems getInstance() {
@@ -97,5 +109,9 @@ public final class AlcarisItems extends JavaPlugin {
 
     public Jecon getJecon() {
         return jecon;
+    }
+
+    public MagicService getMagicService() {
+        return magicService;
     }
 }

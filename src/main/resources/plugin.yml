@@ -8,6 +8,7 @@ website: https://www.alcaris.net
 depend:
   - AlcarisCore
   - Jecon
+  - AlcarisPlayer
 
 commands:
   custom-item:
@@ -22,3 +23,6 @@ commands:
   money-convert:
     description: お金をmoney_1000アイテムに変換する
     usage: /money-convert
+  magic:
+    description: 魔法を選択/一覧/MP操作
+    usage: /magic <list|select|mp>

@@ -1,3 +1,7 @@
 apiUrl: ""
 apiKey: ""
 replaceVanillaArmor: false
+magic:
+  defaultMp: 100
+  abilityMultiplierStat: "mat" # which stat to base ability damage on (e.g., mat, atk)
+  abilityMultiplierScale: 0.01  # damage multiplier = 1 + stat * scale
