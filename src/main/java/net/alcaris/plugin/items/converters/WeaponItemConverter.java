@@ -28,10 +28,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.LinkedHashMap;
 
 import com.google.gson.Gson;
+import org.jetbrains.annotations.NotNull;
 
 public class WeaponItemConverter {
     private final AlcarisItems plugin;
@@ -102,7 +102,7 @@ public class WeaponItemConverter {
             weapon.getType(),
             weapon.getRequirement(),
             maxModification,
-            (int) weapon.getDurability(),
+                weapon.getDurability(),
             statData
         );
     }
@@ -129,7 +129,7 @@ public class WeaponItemConverter {
             weapon.getType(),
             weapon.getRequirement(),
             maxModification,
-            durability > 0 ? durability : (int) weapon.getDurability(),
+            durability > 0 ? durability : weapon.getDurability(),
             statData
         );
     }
@@ -164,7 +164,7 @@ public class WeaponItemConverter {
         applyAttributeModifiers(itemMeta, statData);
         
         // Set lore
-        List<Component> lore = createLore(item, requirement, maxModification, weapon, durability, statData);
+        List<Component> lore = createLore(item, requirement, maxModification, durability, statData);
         itemMeta.lore(lore);
 
         // Set persistent data
@@ -209,13 +209,12 @@ public class WeaponItemConverter {
         }
     }
 
-    private List<Component> createLore(ItemBaseModel item, int requirement, int polishingCount,
-                                     ItemWeaponModel weapon, int durability, WeaponStatData statData) {
+    private List<Component> createLore(ItemBaseModel item, int requirement, int polishingCount, int durability, WeaponStatData statData) {
         List<Component> lore = new ArrayList<>();
 
         // Add rarity at the top
-        lore.add(Component.text("【" + net.alcaris.plugin.items.enums.TextureIcons.fromRarity(item.getRarity()).getUnicode() + "】 " + "レアリティ: " + item.getRarity())
-            .color(TextColor.fromHexString(net.alcaris.plugin.items.enums.Colors.fromRarity(item.getRarity()).getHexCode()))
+        lore.add(Component.text("【" + RarityUtils.getIcon(item.getRarity()).getUnicode() + "】 " + "レアリティ: " + item.getRarity())
+            .color(TextColor.fromHexString(RarityUtils.getColor(item.getRarity()).getHexCode()))
             .decoration(TextDecoration.ITALIC, false));
         
         // Add base lore
@@ -244,20 +243,26 @@ public class WeaponItemConverter {
             double finalValue = statData.getFinalValue(stat);
             int performance = statData.getPerformanceValue(stat);
             if (finalValue != 0) { // 0以外の値（プラス・マイナス両方）を表示
-                String displayValue;
-                if (stat == WeaponStats.HPR || stat == WeaponStats.MP || stat == WeaponStats.MPR ||
-                    stat == WeaponStats.ATK || stat == WeaponStats.DEF || stat == WeaponStats.MDF ||
-                    stat == WeaponStats.CRT || stat == WeaponStats.CRD || stat == WeaponStats.SPD ||
-                    stat == WeaponStats.LUK) {
-                    displayValue = String.valueOf((int)finalValue);
-                } else {
-                    displayValue = String.valueOf(finalValue);
-                }
+                String displayValue = getDisplayValue(stat, finalValue);
                 lore.add(buildStatLine(stat.getDisplayName(), displayValue, String.valueOf(performance)));
             }
         }
 
         return lore;
+    }
+
+    @NotNull
+    private static String getDisplayValue(WeaponStats stat, double finalValue) {
+        String displayValue;
+        if (stat == WeaponStats.HPR || stat == WeaponStats.MP || stat == WeaponStats.MPR ||
+            stat == WeaponStats.ATK || stat == WeaponStats.DEF || stat == WeaponStats.MDF ||
+            stat == WeaponStats.CRT || stat == WeaponStats.CRD || stat == WeaponStats.SPD ||
+            stat == WeaponStats.LUK) {
+            displayValue = String.valueOf((int) finalValue);
+        } else {
+            displayValue = String.valueOf(finalValue);
+        }
+        return displayValue;
     }
 
     private Component buildInfoLine(String label, String value) {
@@ -370,14 +375,13 @@ public class WeaponItemConverter {
         double attackDamage = statData.getFinalValue(WeaponStats.DAMAGE);
         if (attackDamage != 0) { // 0以外の値（プラス・マイナス両方）を適用
             double adjustedDamage = attackDamage - 1.0;
-                AttributeModifier damageModifier = new AttributeModifier(
-                    new NamespacedKey(plugin, "weapon_attack_damage"),
-                    adjustedDamage,
-                    AttributeModifier.Operation.ADD_NUMBER,
-                    EquipmentSlotGroup.MAINHAND
-                );
-                itemMeta.addAttributeModifier(Attribute.ATTACK_DAMAGE, damageModifier);
-            }
+            AttributeModifier damageModifier = new AttributeModifier(
+                new NamespacedKey(plugin, "weapon_attack_damage"),
+                adjustedDamage,
+                AttributeModifier.Operation.ADD_NUMBER,
+                EquipmentSlotGroup.MAINHAND
+            );
+            itemMeta.addAttributeModifier(Attribute.ATTACK_DAMAGE, damageModifier);
         }
         
         // Apply attack speed modifier (subtract 4 from base value)
@@ -418,7 +422,7 @@ public class WeaponItemConverter {
         }
     }
 
-    public boolean upgradeWeaponPerformance(ItemStack itemStack, UpgradeType type, String specificStat) {
+    public boolean upgradeWeaponPerformance(ItemStack itemStack, WeaponItemConverter.UpgradeType type, String specificStat) {
         ItemMeta itemMeta = itemStack.getItemMeta();
         if (itemMeta == null) return false;
 
@@ -525,13 +529,11 @@ public class WeaponItemConverter {
         applyAttributeModifiers(itemMeta, statData);
 
         // アイテムの説明文を更新
-        long version = container.getOrDefault(keys.get("item_version"), PersistentDataType.LONG, 0L);
-        String weaponType = container.getOrDefault(keys.get("weapon_type"), PersistentDataType.STRING, "");
         int requiredLevel = container.getOrDefault(keys.get("required_level"), PersistentDataType.INTEGER, 0);
         int durability = container.getOrDefault(keys.get("durability"), PersistentDataType.INTEGER, 0);
 
         // createLoreを使ってloreを再生成
-        List<Component> lore = createLore(baseModel, requiredLevel, newMaxModification, weapon, durability, statData);
+        List<Component> lore = createLore(baseModel, requiredLevel, newMaxModification, durability, statData);
         itemMeta.lore(lore);
         itemStack.setItemMeta(itemMeta);
         return true;
