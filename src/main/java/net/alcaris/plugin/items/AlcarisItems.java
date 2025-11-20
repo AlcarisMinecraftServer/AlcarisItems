@@ -2,8 +2,6 @@ package net.alcaris.plugin.items;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.alcaris.plugin.core.AlcarisCore;
-import net.alcaris.plugin.core.registry.ItemRegistry;
 import net.alcaris.plugin.items.commands.CustomItemCommand;
 import net.alcaris.plugin.items.commands.ItemLossCommand;
 import net.alcaris.plugin.items.converters.*;
@@ -38,7 +36,6 @@ public final class AlcarisItems extends JavaPlugin {
     private static ItemConverter itemConverter;
     private Jecon jecon;
 
-    private MagicRepository magicRepository;
     private MagicService magicService;
 
     @Override
@@ -88,8 +85,8 @@ public final class AlcarisItems extends JavaPlugin {
         Objects.requireNonNull(this.getCommand("money-convert")).setExecutor(new net.alcaris.plugin.items.commands.MoneyConvertCommand(this, repository));
 
         // Magic system
-        this.magicRepository = new MagicRepository(this);
-        this.magicRepository.load();
+        MagicRepository magicRepository = new MagicRepository(this);
+        magicRepository.load();
         this.magicService = new MagicService(this, magicRepository);
         getServer().getPluginManager().registerEvents(new MagicListener(this, magicService), this);
         Objects.requireNonNull(this.getCommand("magic")).setExecutor(new net.alcaris.plugin.items.commands.MagicCommand(magicRepository, magicService));

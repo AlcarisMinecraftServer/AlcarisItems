@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.LinkedHashMap;
 
 import com.google.gson.Gson;
@@ -89,7 +88,7 @@ public class ArmorItemConverter {
         if (itemMeta == null) return itemStack;
 
         PersistentDataContainer container = itemMeta.getPersistentDataContainer();
-        int maxModification = (int) armor.getMaxModification(); // doubleからintに変換
+        int maxModification = armor.getMaxModification(); // doubleからintに変換
 
         ArmorStatData statData = new ArmorStatData();
 
@@ -100,7 +99,7 @@ public class ArmorItemConverter {
             armor.getType(),
             armor.getRequirement(),
             maxModification,
-            (int) armor.getDurability(), // durabilityもdoubleからintに変換
+            armor.getDurability(), // durabilityもdoubleからintに変換
             statData
         );
     }
@@ -150,8 +149,8 @@ public class ArmorItemConverter {
         setupBasicProperties(itemMeta, item);
         
         // Set durability if available
-        if (itemMeta instanceof Damageable damageable && durability > 0) {
-            damageable.setMaxDamage(durability);
+        if (durability > 0) {
+            itemMeta.setMaxDamage(durability);
         }
         
         // Apply attribute modifiers (e.g., movement speed)
@@ -448,8 +447,6 @@ public class ArmorItemConverter {
         }
 
         // アイテムの説明文を更新
-        long version = container.getOrDefault(keys.get("item_version"), PersistentDataType.LONG, 0L);
-        String armorType = container.getOrDefault(keys.get("armor_type"), PersistentDataType.STRING, "");
         int requiredLevel = container.getOrDefault(keys.get("required_level"), PersistentDataType.INTEGER, 0);
 
         // createLoreを使ってloreを再生成
@@ -457,19 +454,6 @@ public class ArmorItemConverter {
         itemMeta.lore(lore);
         itemStack.setItemMeta(itemMeta);
         return true;
-    }
-
-    /**
-     * ステータスをLoreに追加するヘルパーメソッド
-     */
-    private void addStatToLore(List<Component> lore, ItemArmorModel armor, ArmorStats stat,
-                              ArmorStatData statData) {
-        double baseValue = getArmorStatValue(armor, stat);
-        if (baseValue != 0) {
-            lore.add(buildStatLine(stat.getDisplayName(),
-                    String.valueOf(statData.getFinalValue(stat)),
-                    String.valueOf(statData.getPerformanceValue(stat))));
-        }
     }
 
     /**
