@@ -4,7 +4,7 @@ import net.alcaris.plugin.core.AlcarisCore;
 import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.core.model.item.ItemArmorModel;
 import net.alcaris.plugin.items.AlcarisItems;
-import net.alcaris.plugin.items.enums.Colors;
+import net.alcaris.plugin.items.utils.RarityUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -179,7 +179,7 @@ public class ArmorItemConverter {
     private void setupBasicProperties(ItemMeta itemMeta, ItemBaseModel item) {
         itemMeta.displayName(
             plugin.miniMessage.deserialize(item.getName())
-                .color(TextColor.fromHexString(Colors.fromRarity(item.getRarity()).getHexCode()))
+                .color(TextColor.fromHexString(RarityUtils.getColor(item.getRarity()).getHexCode()))
                 .decoration(TextDecoration.ITALIC, false)
         );
         itemMeta.setMaxStackSize(item.getMaxStack());
@@ -199,8 +199,8 @@ public class ArmorItemConverter {
         List<Component> lore = new ArrayList<>();
 
         // Add rarity at the top
-        lore.add(Component.text("【" + net.alcaris.plugin.items.enums.TextureIcons.fromRarity(item.getRarity()).getUnicode() + "】 " + "レアリティ: " + item.getRarity())
-            .color(TextColor.fromHexString(net.alcaris.plugin.items.enums.Colors.fromRarity(item.getRarity()).getHexCode()))
+        lore.add(Component.text("【" + RarityUtils.getIcon(item.getRarity()).getUnicode() + "】 " + "レアリティ: " + item.getRarity())
+            .color(TextColor.fromHexString(RarityUtils.getColor(item.getRarity()).getHexCode()))
             .decoration(TextDecoration.ITALIC, false));
         
         // Add base lore
@@ -523,8 +523,8 @@ public class ArmorItemConverter {
         }
 
         // 基本情報の追加
-        lore.add(Component.text("【" + net.alcaris.plugin.items.enums.TextureIcons.fromRarity(rarity).getUnicode() + "】 " + "レアリティ: " + rarity)
-            .color(TextColor.fromHexString(net.alcaris.plugin.items.enums.Colors.fromRarity(rarity).getHexCode()))
+        lore.add(Component.text("【" + RarityUtils.getIcon(rarity).getUnicode() + "】 " + "レアリティ: " + rarity)
+            .color(TextColor.fromHexString(RarityUtils.getColor(rarity).getHexCode()))
             .decoration(TextDecoration.ITALIC, false));
 
         // 区切り線

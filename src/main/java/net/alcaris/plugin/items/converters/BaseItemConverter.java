@@ -2,14 +2,12 @@ package net.alcaris.plugin.items.converters;
 
 import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.items.AlcarisItems;
-import net.alcaris.plugin.items.enums.Colors;
-import net.alcaris.plugin.items.enums.TextureIcons;
+import net.alcaris.plugin.items.utils.RarityUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -27,29 +25,42 @@ public abstract class BaseItemConverter<T> {
     }
 
     public ItemStack createItem(ItemBaseModel item, T data, int amount) {
+        if (item == null) {
+            plugin.getLogger().warning("ItemBaseModel is null");
+            return null;
+        }
+
+        if (amount <= 0) {
+            plugin.getLogger().warning("Invalid amount: " + amount);
+            return null;
+        }
+
         ItemStack stack = new ItemStack(getMaterial(item), amount);
         ItemMeta meta = stack.getItemMeta();
 
-        if (meta != null) {
-            setDisplayName(meta, item);
-            setBasicMeta(meta, item);
-
-            List<Component> lore = new ArrayList<>();
-            setLoreDescription(lore, item);
-            setLoreItemData(lore, item, data);
-            setLoreMetaData(lore, item);
-
-            meta.lore(lore);
-            setAdditionalMeta(meta, data);
-            setIdentifiers(meta, item);
-
-            stack.setItemMeta(meta);
+        if (meta == null) {
+            plugin.getLogger().warning("ItemMeta is null for material: " + getMaterial(item));
+            return stack;
         }
+
+        setDisplayName(meta, item);
+        setBasicMeta(meta, item);
+
+        List<Component> lore = new ArrayList<>();
+        setLoreDescription(lore, item);
+        setLoreItemData(lore, item, data);
+        setLoreMetaData(lore, item);
+
+        meta.lore(lore);
+        setAdditionalMeta(stack, data);
+        setIdentifiers(meta, item);
+
+        stack.setItemMeta(meta);
 
         return stack;
     }
 
-    protected abstract void setAdditionalMeta(ItemMeta meta, T data);
+    protected abstract void setAdditionalMeta(ItemStack stack, T data);
 
     protected abstract Material getMaterial(ItemBaseModel item);
 
@@ -58,7 +69,7 @@ public abstract class BaseItemConverter<T> {
     protected void setDisplayName(ItemMeta meta, ItemBaseModel item) {
         meta.displayName(
                 plugin.miniMessage.deserialize(item.getName())
-                        .color(TextColor.fromHexString(Colors.fromRarity(item.getRarity()).getHexCode()))
+                        .color(TextColor.fromHexString(RarityUtils.getColor(item.getRarity()).getHexCode()))
                         .decoration(TextDecoration.ITALIC, false)
         );
     }
@@ -86,13 +97,13 @@ public abstract class BaseItemConverter<T> {
                 .color(NamedTextColor.WHITE)
                 .decoration(TextDecoration.ITALIC, false)
                 .append(Component.text("▸ " + getCategoryName())
-                        .append(Component.text("【" + TextureIcons.fromRarity(item.getRarity()).getUnicode() + "】"))));
+                        .append(Component.text("【" + RarityUtils.getIcon(item.getRarity()).getUnicode() + "】"))));
     }
 
     protected void setIdentifiers(ItemMeta meta, ItemBaseModel item) {
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        container.set(new NamespacedKey(plugin, "item_id"), PersistentDataType.STRING, item.getId());
-        container.set(new NamespacedKey(plugin, "item_version"), PersistentDataType.LONG, item.getVersion());
+        container.set(plugin.getItemIdKey(), PersistentDataType.STRING, item.getId());
+        container.set(plugin.getItemVersionKey(), PersistentDataType.LONG, item.getVersion());
     }
 
     protected abstract String getCategoryName();

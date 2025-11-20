@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id 'com.gradleup.shadow' version '9.0.0-beta8'
+    id 'com.gradleup.shadow' version '8.3.6'
 }
 
 group = 'net.alcaris'
@@ -14,22 +14,18 @@ repositories {
         url = "https://repo.papermc.io/repository/maven-public/"
     }
     maven {
-        name = "alcaris-repo"
-        url = "https://repo.alcaris.net/repository/maven-snapshots/"
-        credentials {
-            username = "alcaris-repo"
-            password = "zaq12wsx"
-        }
-    }
-    maven {
         name = "sonatype"
         url = "https://oss.sonatype.org/content/groups/public/"
+    }
+    maven {
+        name = "alcaris-repository"
+        url = "https://repo.onp.admin.alcaris.net/releases"
     }
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
-    compileOnly files('libs/AlcarisCore-1.0.0-somen1000.jar')
+    compileOnly "io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT"
+    implementation "net.alcaris:AlcarisCore:1.2.5"
 }
 
 def targetJavaVersion = 21
@@ -44,37 +40,45 @@ java {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         options.release.set(targetJavaVersion)
     }
 }
 
 processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
     filesMatching('plugin.yml') {
-        expand 'version': project.version
+        expand props
     }
-    filteringCharset = 'UTF-8'
-}
-
-shadowJar {
-    archiveClassifier.set('')
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifact(shadowJar)
-            artifactId = 'alcaris-items'
+            artifact shadowJar
+            artifactId = 'AlcarisItems'
         }
     }
     repositories {
         maven {
-            name = "nexus"
-            url = uri(System.getenv("NEXUS_URL") ?: "https://repo.alcaris.net/repository/maven-snapshots/")
+            name = "alcaris-repository"
+            url = "https://repo.onp.admin.alcaris.net/releases"
+
             credentials {
-                username = System.getenv("NEXUS_USERNAME")
-                password = System.getenv("NEXUS_PASSWORD")
+                username = findProperty("repoUser") ?: System.getenv("REPO_USER")
+                password = findProperty("repoPassword") ?: System.getenv("REPO_PASS")
+            }
+
+            authentication {
+                basic(BasicAuthentication)
             }
         }
     }
+}
+
+shadowJar {
+    archiveClassifier.set('')
 }

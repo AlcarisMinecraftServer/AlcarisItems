@@ -1,15 +1,22 @@
 package net.alcaris.plugin.items.converters;
 
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.Consumable;
+import io.papermc.paper.datacomponent.item.consumable.ItemUseAnimation;
+import io.papermc.paper.registry.keys.SoundEventKeys;
+import net.alcaris.plugin.core.model.item.Common;
 import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.core.model.item.ItemFoodModel;
 import net.alcaris.plugin.items.AlcarisItems;
 import net.alcaris.plugin.items.enums.EffectInfo;
 import net.alcaris.plugin.items.enums.TextureIcons;
+import net.alcaris.plugin.items.utils.TextUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.components.FoodComponent;
 
@@ -19,17 +26,6 @@ import java.util.Locale;
 public class FoodItemConverter extends BaseItemConverter<ItemFoodModel> {
     public FoodItemConverter(AlcarisItems plugin) {
         super(plugin);
-    }
-
-    private String toRomanNumeral(int level) {
-        return switch (level) {
-            case 1 -> "I";
-            case 2 -> "II";
-            case 3 -> "III";
-            case 4 -> "IV";
-            case 5 -> "V";
-            default -> "Lv" + level;
-        };
     }
 
     @Override
@@ -86,7 +82,7 @@ public class FoodItemConverter extends BaseItemConverter<ItemFoodModel> {
 
         // region エフェクト
         if (food.getEffects() != null && !food.getEffects().isEmpty()) {
-            for (ItemFoodModel.Effect effect : food.getEffects()) {
+            for (Common.Effect effect : food.getEffects()) {
                 String id = effect.getEffect();
                 EffectInfo.Info info = EffectInfo.get(id);
 
@@ -98,7 +94,7 @@ public class FoodItemConverter extends BaseItemConverter<ItemFoodModel> {
                         Component.text("   \uF803").color(NamedTextColor.GRAY).append(
                                 Component.text(info.nameJa + " ").color(info.color)
                                         .decoration(TextDecoration.ITALIC, false)
-                                        .append(Component.text(toRomanNumeral(amplifier)))
+                                        .append(Component.text(TextUtils.toRomanNumeral(amplifier)))
                                         .append(Component.text("（" + timeString + "）"))
                         )
                 );
@@ -113,12 +109,18 @@ public class FoodItemConverter extends BaseItemConverter<ItemFoodModel> {
 
     @Override
     @SuppressWarnings("UnstableApiUsage")
-    protected void setAdditionalMeta(ItemMeta meta, ItemFoodModel food) {
+    protected void setAdditionalMeta(ItemStack stack, ItemFoodModel food) {
+        ItemMeta meta = stack.getItemMeta();
         FoodComponent foodComponent = meta.getFood();
         foodComponent.setNutrition(food.getNutrition());
         foodComponent.setSaturation(food.getSaturation());
         foodComponent.setCanAlwaysEat(food.isCanAlwaysEat());
-        foodComponent.setEatSeconds(food.getEatSeconds());
         meta.setFood(foodComponent);
+
+        Consumable.Builder consumable = Consumable.consumable()
+                .consumeSeconds(food.getEatSeconds())
+                .animation(ItemUseAnimation.EAT)
+                .sound(SoundEventKeys.ENTITY_GENERIC_EAT);
+        stack.setData(DataComponentTypes.CONSUMABLE, consumable);
     }
 }

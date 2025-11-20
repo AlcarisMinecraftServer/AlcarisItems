@@ -4,6 +4,7 @@ import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.items.AlcarisItems;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public class MaterialItemConverter extends BaseItemConverter<Void> {
     }
 
     @Override
-    protected void setAdditionalMeta(ItemMeta meta, Void data) {
+    protected void setAdditionalMeta(ItemStack stack, Void data) {
         // TODO: カスタムメタ追加予定
     }
 }

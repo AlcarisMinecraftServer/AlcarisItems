@@ -3,8 +3,9 @@ package net.alcaris.plugin.items.converters;
 import net.alcaris.plugin.core.AlcarisCore;
 import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.core.model.item.ItemWeaponModel;
+
 import net.alcaris.plugin.items.AlcarisItems;
-import net.alcaris.plugin.items.enums.Colors;
+import net.alcaris.plugin.items.utils.RarityUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -80,7 +81,7 @@ public class WeaponItemConverter {
         if (itemMeta == null) return itemStack;
 
         PersistentDataContainer container = itemMeta.getPersistentDataContainer();
-        int maxModification = (int) weapon.getMaxModification(); // doubleからintに変換
+        int maxModification = weapon.getMaxModification(); // doubleからintに変換
 
         return commonSetting(
             item,
@@ -169,7 +170,7 @@ public class WeaponItemConverter {
     private void setupBasicProperties(ItemMeta itemMeta, ItemBaseModel item) {
         itemMeta.displayName(
             plugin.miniMessage.deserialize(item.getName())
-                .color(TextColor.fromHexString(Colors.fromRarity(item.getRarity()).getHexCode()))
+                .color(TextColor.fromHexString(RarityUtils.getColor(item.getRarity()).getHexCode()))
                 .decoration(TextDecoration.ITALIC, false)
         );
         itemMeta.setMaxStackSize(item.getMaxStack());
@@ -186,8 +187,8 @@ public class WeaponItemConverter {
         List<Component> lore = new ArrayList<>();
 
         // Add rarity at the top
-        lore.add(Component.text("【" + net.alcaris.plugin.items.enums.TextureIcons.fromRarity(item.getRarity()).getUnicode() + "】 " + "レアリティ: " + item.getRarity())
-            .color(TextColor.fromHexString(net.alcaris.plugin.items.enums.Colors.fromRarity(item.getRarity()).getHexCode()))
+        lore.add(Component.text("【" + RarityUtils.getIcon(item.getRarity()).getUnicode() + "】 " + "レアリティ: " + item.getRarity())
+            .color(TextColor.fromHexString(RarityUtils.getColor(item.getRarity()).getHexCode()))
             .decoration(TextDecoration.ITALIC, false));
         
         // Add base lore
@@ -325,10 +326,10 @@ public class WeaponItemConverter {
     private void applyAttributeModifiers(ItemMeta itemMeta, double attackDamage, double attackSpeed, 
                                        double attackRange, int movementSpeed) {
         // Clear existing attribute modifiers
-        itemMeta.removeAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE);
-        itemMeta.removeAttributeModifier(Attribute.GENERIC_ATTACK_SPEED);
-        itemMeta.removeAttributeModifier(Attribute.GENERIC_MOVEMENT_SPEED);
-        itemMeta.removeAttributeModifier(Attribute.PLAYER_ENTITY_INTERACTION_RANGE);
+        itemMeta.removeAttributeModifier(Attribute.ATTACK_DAMAGE);
+        itemMeta.removeAttributeModifier(Attribute.ATTACK_SPEED);
+        itemMeta.removeAttributeModifier(Attribute.MOVEMENT_SPEED);
+        itemMeta.removeAttributeModifier(Attribute.ENTITY_INTERACTION_RANGE);
         
         // Apply attack damage modifier (subtract 1 from base value)
         if (attackDamage > 0) {
@@ -340,7 +341,7 @@ public class WeaponItemConverter {
                     AttributeModifier.Operation.ADD_NUMBER,
                     EquipmentSlotGroup.MAINHAND
                 );
-                itemMeta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE, damageModifier);
+                itemMeta.addAttributeModifier(Attribute.ATTACK_DAMAGE, damageModifier);
             }
         }
         
@@ -353,7 +354,7 @@ public class WeaponItemConverter {
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.MAINHAND
             );
-            itemMeta.addAttributeModifier(Attribute.GENERIC_ATTACK_SPEED, speedModifier);
+            itemMeta.addAttributeModifier(Attribute.ATTACK_SPEED, speedModifier);
         }
         
         // Apply attack range modifier using the correct attribute
@@ -364,7 +365,7 @@ public class WeaponItemConverter {
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.MAINHAND
             );
-            itemMeta.addAttributeModifier(Attribute.PLAYER_ENTITY_INTERACTION_RANGE, rangeModifier);
+            itemMeta.addAttributeModifier(Attribute.ENTITY_INTERACTION_RANGE, rangeModifier);
         }
         
         // Apply movement speed modifier
@@ -375,7 +376,7 @@ public class WeaponItemConverter {
                 AttributeModifier.Operation.MULTIPLY_SCALAR_1,
                 EquipmentSlotGroup.MAINHAND
             );
-            itemMeta.addAttributeModifier(Attribute.GENERIC_MOVEMENT_SPEED, movementModifier);
+            itemMeta.addAttributeModifier(Attribute.MOVEMENT_SPEED, movementModifier);
         }
     }
 
@@ -505,8 +506,8 @@ public class WeaponItemConverter {
         }
 
         // 基本情報の追加
-        lore.add(Component.text("【" + net.alcaris.plugin.items.enums.TextureIcons.fromRarity(rarity).getUnicode() + "】 " + "レアリティ: " + rarity)
-            .color(TextColor.fromHexString(net.alcaris.plugin.items.enums.Colors.fromRarity(rarity).getHexCode()))
+        lore.add(Component.text("【" + RarityUtils.getIcon(rarity).getUnicode() + "】 " + "レアリティ: " + rarity)
+            .color(TextColor.fromHexString(RarityUtils.getColor(rarity).getHexCode()))
             .decoration(TextDecoration.ITALIC, false));
 
         // 区切り線

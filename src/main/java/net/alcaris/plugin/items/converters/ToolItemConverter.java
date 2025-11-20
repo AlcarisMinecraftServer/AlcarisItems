@@ -1,12 +1,12 @@
 package net.alcaris.plugin.items.converters;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.core.model.item.ItemToolModel;
 import net.alcaris.plugin.items.AlcarisItems;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.components.ToolComponent;
@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ToolItemConverter extends BaseItemConverter<ItemToolModel> {
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private final Gson gson = AlcarisItems.getGson();
 
     public ToolItemConverter(AlcarisItems plugin) {
         super(plugin);
@@ -48,7 +48,9 @@ public class ToolItemConverter extends BaseItemConverter<ItemToolModel> {
 
     @Override
     @SuppressWarnings("UnstableApiUsage")
-    protected void setAdditionalMeta(ItemMeta meta, ItemToolModel tool) {
+    protected void setAdditionalMeta(ItemStack stack, ItemToolModel tool) {
+        ItemMeta meta = stack.getItemMeta();
+
         if (meta instanceof Damageable damageable) {
             damageable.setMaxDamage(tool.getMaxDamage());
         }

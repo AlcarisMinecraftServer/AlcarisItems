@@ -22,15 +22,11 @@ import java.util.stream.Stream;
 public class CustomItemCommand implements CommandExecutor, TabCompleter {
     private final AlcarisItems plugin;
     private final ItemRegistry itemRegistry;
-    private final ItemConverter itemConverter;
     private final WeaponItemConverter weaponItemConverter;
     private final ArmorItemConverter armorItemConverter;
 
     public CustomItemCommand(
             AlcarisItems plugin,
-            FoodItemConverter foodItemConverter,
-            ToolItemConverter toolItemConverter,
-            MaterialItemConverter materialItemConverter,
             WeaponItemConverter weaponItemConverter,
             ArmorItemConverter armorItemConverter
     ) {
@@ -41,11 +37,9 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
         )).getItemRegistry();
         this.weaponItemConverter = weaponItemConverter;
         this.armorItemConverter = armorItemConverter;
-        this.itemConverter = new ItemConverter(foodItemConverter, toolItemConverter, materialItemConverter, weaponItemConverter, armorItemConverter);
     }
 
     @Override
-    @Deprecated(forRemoval = true)
     public List<String> onTabComplete(
             @NotNull CommandSender sender, @NotNull Command command,
             @NotNull String alias, String[] args
@@ -153,8 +147,8 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
             }
         }
 
-        ItemStack stack = itemConverter.convert(optModel.get(), amount);
-        if (stack == null) {
+        ItemStack stack = AlcarisItems.getItemConverter().convert(optModel.get(), amount);
+        if (stack == null || stack.getType().isAir()) {
             sender.sendMessage(Component.text("ItemStack の生成に失敗しました。")
                     .color(NamedTextColor.RED));
             return;

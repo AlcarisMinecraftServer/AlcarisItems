@@ -7,6 +7,7 @@ import net.alcaris.plugin.core.model.item.ItemFoodModel;
 import net.alcaris.plugin.core.model.item.ItemToolModel;
 import net.alcaris.plugin.core.model.item.ItemWeaponModel;
 import net.alcaris.plugin.core.model.item.ItemArmorModel;
+import net.alcaris.plugin.items.AlcarisItems;
 import org.bukkit.inventory.ItemStack;
 
 public class ItemConverter {
@@ -15,7 +16,8 @@ public class ItemConverter {
     private final MaterialItemConverter materialItemConverter;
     private final WeaponItemConverter weaponItemConverter;
     private final ArmorItemConverter armorItemConverter;
-    private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+    private final Gson gson = AlcarisItems.getGson();
 
     public ItemConverter(
             FoodItemConverter foodItemConverter,
@@ -31,7 +33,16 @@ public class ItemConverter {
         this.armorItemConverter = armorItemConverter;
     }
 
+    @SuppressWarnings("unused")
+    private <T> T convertData(Object data, Class<T> clazz) {
+        return gson.fromJson(gson.toJson(data), clazz);
+    }
+
     public ItemStack convert(ItemBaseModel item, int amount) {
+        return convert(item, amount, null);
+    }
+
+    public ItemStack convert(ItemBaseModel item, int amount, ItemStack oldStack) {
         ItemStack result = null;
 
         switch (item.getCategory()) {
@@ -45,11 +56,15 @@ public class ItemConverter {
             }
             case WEAPON -> {
                 ItemWeaponModel weaponData = gson.fromJson(gson.toJson(item.getData()), ItemWeaponModel.class);
-                result = weaponItemConverter.createNewItem(item, weaponData, amount);
+                result = oldStack != null
+                        ? weaponItemConverter.updateItem(item, weaponData, amount, oldStack)
+                        : weaponItemConverter.createNewItem(item, weaponData, amount);
             }
             case ARMOR -> {
                 ItemArmorModel armorData = gson.fromJson(gson.toJson(item.getData()), ItemArmorModel.class);
-                result = armorItemConverter.createNewItem(item, armorData, amount);
+                result = oldStack != null
+                        ? armorItemConverter.updateItem(item, armorData, amount, oldStack)
+                        : armorItemConverter.createNewItem(item, armorData, amount);
             }
             case MATERIAL -> result = materialItemConverter.createItem(item, null, amount);
         }

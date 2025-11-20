@@ -38,15 +38,4 @@ public enum TextureIcons {
     public String getUnicode() {
         return unicode;
     }
-
-    public static TextureIcons fromRarity(int rarity) {
-        return switch (rarity) {
-            case 1 -> RARITY_1;
-            case 2 -> RARITY_2;
-            case 3 -> RARITY_3;
-            case 4 -> RARITY_4;
-            case 5 -> RARITY_5;
-            default -> throw new IllegalArgumentException("Invalid rarity: " + rarity);
-        };
-    }
 }
