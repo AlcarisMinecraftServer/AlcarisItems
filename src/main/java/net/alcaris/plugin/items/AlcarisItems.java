@@ -1,12 +1,16 @@
 package net.alcaris.plugin.items;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.alcaris.plugin.core.AlcarisCore;
 import net.alcaris.plugin.core.registry.ItemRegistry;
 import net.alcaris.plugin.items.commands.CustomItemCommand;
+import net.alcaris.plugin.items.commands.ItemLossCommand;
 import net.alcaris.plugin.items.converters.*;
 import net.alcaris.plugin.items.listeners.InventoryUpdateListener;
 import net.alcaris.plugin.items.lib.ItemsRepository;
 import net.alcaris.plugin.items.lib.InventoryUpdater;
+import net.alcaris.plugin.items.listeners.MagicListener;
 import net.alcaris.plugin.items.magic.MagicRepository;
 import net.alcaris.plugin.items.magic.MagicService;
 import net.kyori.adventure.text.Component;
@@ -33,6 +37,7 @@ public final class AlcarisItems extends JavaPlugin {
     private static ItemsRepository repository;
     private static ItemConverter itemConverter;
     private Jecon jecon;
+
     private MagicRepository magicRepository;
     private MagicService magicService;
 

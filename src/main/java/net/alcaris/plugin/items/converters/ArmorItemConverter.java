@@ -13,6 +13,9 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -312,10 +315,10 @@ public class ArmorItemConverter {
      */
     private void applyAttributeModifiers(ItemMeta itemMeta, ArmorStatData statData) {
         // Remove default attribute modifiers
-        itemMeta.removeAttributeModifier(Attribute.GENERIC_ARMOR);
-        itemMeta.removeAttributeModifier(Attribute.GENERIC_ARMOR_TOUGHNESS);
-        itemMeta.removeAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE);
-        itemMeta.removeAttributeModifier(Attribute.GENERIC_MOVEMENT_SPEED);
+        itemMeta.removeAttributeModifier(Attribute.ARMOR);
+        itemMeta.removeAttributeModifier(Attribute.ARMOR_TOUGHNESS);
+        itemMeta.removeAttributeModifier(Attribute.KNOCKBACK_RESISTANCE);
+        itemMeta.removeAttributeModifier(Attribute.MOVEMENT_SPEED);
 
         // Apply movement speed modifier from MOVEMENT_SPEED stat (value treated as ‰)
         int speedValue = statData.getFinalValue(ArmorStats.MOVEMENT_SPEED);
@@ -326,7 +329,7 @@ public class ArmorItemConverter {
                 AttributeModifier.Operation.ADD_NUMBER,
                 EquipmentSlotGroup.ARMOR
             );
-            itemMeta.addAttributeModifier(Attribute.GENERIC_MOVEMENT_SPEED, movementModifier);
+            itemMeta.addAttributeModifier(Attribute.MOVEMENT_SPEED, movementModifier);
         }
     }
 
