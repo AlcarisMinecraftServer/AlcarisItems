@@ -17,6 +17,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Objects;
 import java.util.Optional;
+import org.bukkit.Material;
 
 public class InventoryUpdater {
     private final AlcarisItems plugin;
@@ -51,6 +52,17 @@ public class InventoryUpdater {
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
             if (!pdc.has(keyId, PersistentDataType.STRING) ||
                     !pdc.has(keyVersion, PersistentDataType.LONG)) {
+                // If config enables replacement and item is vanilla armor, replace with custom item
+                if (plugin.getConfig().getBoolean("replaceVanillaArmor", false) && isVanillaArmor(item.getType())) {
+                    String vanillaId = "vanilla_" + item.getType().name().toLowerCase();
+                    Optional<ItemBaseModel> vanillaModel = itemRegistry.get(vanillaId);
+                    if (vanillaModel.isPresent()) {
+                        ItemStack newItem = AlcarisItems.getItemConverter().convert(vanillaModel.get(), item.getAmount());
+                        newItem = copyDamage(newItem, item);
+                        inv.setItem(slot, newItem);
+                        plugin.getLogger().info("プレイヤー " + player.getName() + " のバニラ防具 " + item.getType().name() + " を " + vanillaId + " に置き換えました。");
+                    }
+                }
                 continue;
             }
 
@@ -95,6 +107,13 @@ public class InventoryUpdater {
             newStack.setItemMeta(newMeta);
         }
         return newStack;
+    }
+
+    private boolean isVanillaArmor(Material material) {
+        return material.name().endsWith("_HELMET") ||
+               material.name().endsWith("_CHESTPLATE") ||
+               material.name().endsWith("_LEGGINGS") ||
+               material.name().endsWith("_BOOTS");
     }
     
     public void updateAllPlayersItems() {

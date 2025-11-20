@@ -5,6 +5,8 @@ import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.core.registry.ItemRegistry;
 import net.alcaris.plugin.items.AlcarisItems;
 import net.alcaris.plugin.items.converters.*;
+import net.alcaris.plugin.items.enums.ArmorStats;
+import net.alcaris.plugin.items.enums.WeaponStats;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -83,11 +85,11 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
             if (args[0].equalsIgnoreCase("give")) {
                 completions.add("<amount>");
             } else if (args[0].equalsIgnoreCase("upgrade") && args[1].equalsIgnoreCase("weapon")) {
-                Stream.of("damage", "walkSpeed", "attackRange", "attackSpeed", "xpBonus", "lootBonus")
+                WeaponStats.getAllKeysStream()
                         .filter(s -> s.toLowerCase().startsWith(input))
                         .forEach(completions::add);
             } else if (args[0].equalsIgnoreCase("upgrade") && args[1].equalsIgnoreCase("armor")) {
-                Stream.of("hp", "hpr", "mp", "mpr", "atk", "def", "mat", "mdf", "dex", "speed")
+                ArmorStats.getAllKeysStream()
                         .filter(s -> s.toLowerCase().startsWith(input))
                         .forEach(completions::add);
             }
@@ -249,7 +251,7 @@ public class CustomItemCommand implements CommandExecutor, TabCompleter {
                 .color(NamedTextColor.YELLOW));
         sender.sendMessage(Component.text("武器のspecificStat: damage, walkSpeed, attackRange, attackSpeed, xpBonus, lootBonus")
                 .color(NamedTextColor.YELLOW));
-        sender.sendMessage(Component.text("防具のspecificStat: hp, hpr, mp, mpr, atk, def, mat, mdf, dex, speed")
+                            sender.sendMessage(Component.text("防具のspecificStat: " + String.join(", ", ArmorStats.getAllKeys()))
                 .color(NamedTextColor.YELLOW));
     }
 }
