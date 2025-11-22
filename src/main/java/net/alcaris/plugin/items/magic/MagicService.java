@@ -30,7 +30,6 @@ public class MagicService {
     private final Map<UUID, Map<String, Long>> playerCooldowns = new HashMap<>();
     private Object playerStatsRepository; // AlcarisPlayers repository (loaded via reflection)
     private Class<?> playerStatsRepositoryClass;
-    private Class<?> gameStatsViewClass;
 
     public MagicService(AlcarisItems plugin, MagicRepository repository) {
         this.plugin = plugin;
@@ -44,16 +43,15 @@ public class MagicService {
             if (ap != null) {
                 ClassLoader apCl = ap.getClass().getClassLoader();
                 this.playerStatsRepositoryClass = Class.forName(
-                        "somen1000.trump.alcarisPlayer.repository.PlayerStatsRepository",
+                        "net.alcaris.plugin.player.repository.PlayerStatsRepository",
                         true,
                         apCl
                 );
                 RegisteredServiceProvider<?> reg = Bukkit.getServicesManager().getRegistration((Class) this.playerStatsRepositoryClass);
-                if (reg != null && reg.getProvider() != null) {
+                if (reg != null) {
                     this.playerStatsRepository = reg.getProvider();
                     for (Class<?> inner : playerStatsRepositoryClass.getDeclaredClasses()) {
                         if (inner.getSimpleName().equals("GameStatsView")) {
-                            this.gameStatsViewClass = inner;
                             break;
                         }
                     }
