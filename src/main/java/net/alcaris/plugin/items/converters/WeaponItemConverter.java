@@ -435,7 +435,6 @@ public class WeaponItemConverter {
             return false;
         }
 
-        // アイテムIDを取得してItemBaseModelを取得
         String itemId = container.getOrDefault(keys.get("item_id"), PersistentDataType.STRING, "");
         Optional<ItemBaseModel> optModel = ((AlcarisCore) Bukkit.getPluginManager().getPlugin("AlcarisCore")).getItemRegistry().get(itemId);
         if (optModel.isEmpty()) {

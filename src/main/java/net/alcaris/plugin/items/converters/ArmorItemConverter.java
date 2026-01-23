@@ -88,7 +88,6 @@ public class ArmorItemConverter {
         ItemMeta itemMeta = itemStack.getItemMeta();
         if (itemMeta == null) return itemStack;
 
-        PersistentDataContainer container = itemMeta.getPersistentDataContainer();
         int maxModification = armor.getMaxModification(); // doubleからintに変換
 
         ArmorStatData statData = new ArmorStatData();
