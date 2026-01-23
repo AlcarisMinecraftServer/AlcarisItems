@@ -48,9 +48,7 @@ public class ToolItemConverter extends BaseItemConverter<ItemToolModel> {
 
     @Override
     @SuppressWarnings("UnstableApiUsage")
-    protected void setAdditionalMeta(ItemStack stack, ItemToolModel tool) {
-        ItemMeta meta = stack.getItemMeta();
-
+    protected void setAdditionalMeta(ItemStack stack, ItemMeta meta, ItemToolModel tool) {
         if (meta instanceof Damageable damageable) {
             damageable.setMaxDamage(tool.getMaxDamage());
         }

@@ -5,6 +5,7 @@ import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.core.model.item.ItemArmorModel;
 import net.alcaris.plugin.items.AlcarisItems;
 import net.alcaris.plugin.items.utils.RarityUtils;
+import net.alcaris.plugin.items.utils.ItemDataComponents;
 import net.alcaris.plugin.items.enums.ArmorStats;
 import net.alcaris.plugin.items.enums.ArmorStatData;
 import net.kyori.adventure.text.Component;
@@ -164,6 +165,7 @@ public class ArmorItemConverter {
         setupPersistentData(itemMeta, item, type != null ? type : "default", requirement, maxModification, durability, statData);
 
         itemStack.setItemMeta(itemMeta);
+        ItemDataComponents.apply(itemStack, item);
         return itemStack;
     }
 
@@ -185,9 +187,7 @@ public class ArmorItemConverter {
         );
         itemMeta.setMaxStackSize(item.getMaxStack());
 
-        if (item.getCustomModelData() != 0) {
-            itemMeta.setCustomModelData(item.getCustomModelData());
-        }
+        ItemDataComponents.applyLegacyCustomModelData(itemMeta, item);
     }
 
     private List<Component> createLore(ItemBaseModel item, int requirement, int polishingCount,

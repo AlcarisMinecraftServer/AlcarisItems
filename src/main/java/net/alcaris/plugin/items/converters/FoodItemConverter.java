@@ -109,8 +109,7 @@ public class FoodItemConverter extends BaseItemConverter<ItemFoodModel> {
 
     @Override
     @SuppressWarnings("UnstableApiUsage")
-    protected void setAdditionalMeta(ItemStack stack, ItemFoodModel food) {
-        ItemMeta meta = stack.getItemMeta();
+    protected void setAdditionalMeta(ItemStack stack, ItemMeta meta, ItemFoodModel food) {
         FoodComponent foodComponent = meta.getFood();
         foodComponent.setNutrition(food.getNutrition());
         foodComponent.setSaturation(food.getSaturation());

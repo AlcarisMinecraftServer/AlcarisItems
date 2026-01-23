@@ -3,6 +3,7 @@ package net.alcaris.plugin.items.converters;
 import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.items.AlcarisItems;
 import net.alcaris.plugin.items.utils.RarityUtils;
+import net.alcaris.plugin.items.utils.ItemDataComponents;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -52,15 +53,17 @@ public abstract class BaseItemConverter<T> {
         setLoreMetaData(lore, item);
 
         meta.lore(lore);
-        setAdditionalMeta(stack, data);
+        setAdditionalMeta(stack, meta, data);
         setIdentifiers(meta, item);
 
         stack.setItemMeta(meta);
 
+        ItemDataComponents.apply(stack, item);
+
         return stack;
     }
 
-    protected abstract void setAdditionalMeta(ItemStack stack, T data);
+    protected abstract void setAdditionalMeta(ItemStack stack, ItemMeta meta, T data);
 
     protected abstract Material getMaterial(ItemBaseModel item);
 
@@ -76,9 +79,7 @@ public abstract class BaseItemConverter<T> {
 
     protected void setBasicMeta(ItemMeta meta, ItemBaseModel item) {
         meta.setMaxStackSize(item.getMaxStack());
-        if (item.getCustomModelData() != 0) {
-            meta.setCustomModelData(item.getCustomModelData());
-        }
+        ItemDataComponents.applyLegacyCustomModelData(meta, item);
     }
 
     protected void setLoreDescription(List<Component> lore, ItemBaseModel item) {

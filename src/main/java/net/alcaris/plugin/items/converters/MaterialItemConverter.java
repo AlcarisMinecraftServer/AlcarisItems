@@ -31,7 +31,7 @@ public class MaterialItemConverter extends BaseItemConverter<Void> {
     }
 
     @Override
-    protected void setAdditionalMeta(ItemStack stack, Void data) {
+    protected void setAdditionalMeta(ItemStack stack, ItemMeta meta, Void data) {
         // TODO: カスタムメタ追加予定
     }
 }
