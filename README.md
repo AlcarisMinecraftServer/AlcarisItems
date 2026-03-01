@@ -3,6 +3,11 @@
 このプラグインは、カスタムアイテムの実装を簡単にするために開発されました。  
 サーバー上のアイテムを自由にカスタマイズできる柔軟性と、より高度なアイテム作成を可能にする利便性を提供します。
 
+## Dependencies
+
+- [**AlcarisCore**](https://github.com/AlcarisMinecraftServer/AlcarisCore)
+- [**AlcarisPlayer**](https://github.com/AlcarisMinecraftServer/AlcarisPlayer)
+
 ## Usage
 
 1. **ダウンロード**
