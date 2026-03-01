@@ -1,7 +1,7 @@
 package net.alcaris.plugin.items.magic;
 
 public class MagicSpellThrowConfig {
-    private final String projectile; // e.g., SNOWBALL
+    private final String projectile;
     private final double radius;
     private final double damage;
 
@@ -23,5 +23,3 @@ public class MagicSpellThrowConfig {
         return damage;
     }
 }
-
-

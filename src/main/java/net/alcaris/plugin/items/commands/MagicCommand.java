@@ -94,5 +94,3 @@ public class MagicCommand implements CommandExecutor, TabCompleter {
         return res;
     }
 }
-
-

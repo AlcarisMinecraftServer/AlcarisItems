@@ -36,15 +36,15 @@ import com.google.gson.Gson;
 public class ArmorItemConverter {
     private final AlcarisItems plugin;
     private final Map<String, NamespacedKey> keys;
-    private final Gson gson = new Gson();
+    private final Gson gson = AlcarisItems.getGson();
 
-    private static final int PERFORMANCE_INCREMENT = 5; // 固定値での上昇量
+    private static final int PERFORMANCE_INCREMENT = 5;
 
     public enum UpgradeType {
-        ROLL_ALL,           // 全てをロール
-        FIXED_INCREMENT,    // 1つを固定値で5%あげる
-        ROLL_SPECIFIC,      // 1つを指定してロール
-        ROLL_SPECIFIC_HIGH  // 1つを前回のロールと比べて、高い方を採用
+        ROLL_ALL,
+        FIXED_INCREMENT,
+        ROLL_SPECIFIC,
+        ROLL_SPECIFIC_HIGH
     }
 
     public ArmorItemConverter(final AlcarisItems plugin) {
@@ -69,7 +69,11 @@ public class ArmorItemConverter {
     }
 
     private Material getArmorMaterial(String itemId) {
-        String armorId = itemId.substring(itemId.lastIndexOf("_"));
+        int idx = itemId.lastIndexOf('_');
+        if (idx < 0) {
+            return Material.LEATHER_CHESTPLATE;
+        }
+        String armorId = itemId.substring(idx);
         return switch (armorId) {
             case "_helmet" -> Material.LEATHER_HELMET;
             case "_chestplate" -> Material.LEATHER_CHESTPLATE;
@@ -84,11 +88,7 @@ public class ArmorItemConverter {
     }
 
     public ItemStack createNewItem(ItemBaseModel item, ItemArmorModel armor, int amount) {
-        ItemStack itemStack = new ItemStack(getArmorMaterial(item.getId()), amount);
-        ItemMeta itemMeta = itemStack.getItemMeta();
-        if (itemMeta == null) return itemStack;
-
-        int maxModification = armor.getMaxModification(); // doubleからintに変換
+        int maxModification = armor.getMaxModification();
 
         ArmorStatData statData = new ArmorStatData();
 
@@ -99,7 +99,7 @@ public class ArmorItemConverter {
             armor.getType(),
             armor.getRequirement(),
             maxModification,
-            armor.getDurability(), // durabilityもdoubleからintに変換
+            armor.getDurability(),
             statData
         );
     }
@@ -124,7 +124,7 @@ public class ArmorItemConverter {
             armor.getType(),
             armor.getRequirement(),
             maxModification,
-            0, // durability is not available in backward compatibility
+            0,
             statData
         );
     }
@@ -137,7 +137,6 @@ public class ArmorItemConverter {
 
         if (itemMeta == null) return itemStack;
 
-        // Calculate final stats using ArmorStatData
         for (ArmorStats stat : ArmorStats.values()) {
             double baseValue = getArmorStatValue(armor, stat);
             int performance = statData.getPerformanceValue(stat);
@@ -145,22 +144,17 @@ public class ArmorItemConverter {
             statData.setFinalValue(stat, finalValue);
         }
 
-        // Set basic item properties
         setupBasicProperties(itemMeta, item);
-        
-        // Set durability if available
+
         if (durability > 0) {
             itemMeta.setMaxDamage(durability);
         }
-        
-        // Apply attribute modifiers (e.g., movement speed)
+
         applyAttributeModifiers(itemMeta, statData);
 
-        // Set lore
         List<Component> lore = createLore(item, requirement, maxModification, armor, statData);
         itemMeta.lore(lore);
 
-        // Set persistent data
         setupPersistentData(itemMeta, item, type != null ? type : "default", requirement, maxModification, durability, statData);
 
         itemStack.setItemMeta(itemMeta);
@@ -170,11 +164,9 @@ public class ArmorItemConverter {
 
     private int calculateFinalStat(double baseValue, int performance) {
         if (baseValue < 0) {
-            // ベース値がマイナスの場合: baseValue * (1 - (performance / 200))
             return (int) Math.floor(baseValue * (1 - (performance / 200.0)));
         } else {
-            // ベース値がプラスまたは0の場合: 既存の計算式
-        return (int) Math.floor(baseValue * (0.5 * (1 + performance / 100.0)));
+            return (int) Math.floor(baseValue * (0.5 * (1 + performance / 100.0)));
         }
     }
 
@@ -185,51 +177,43 @@ public class ArmorItemConverter {
                 .decoration(TextDecoration.ITALIC, false)
         );
         itemMeta.setMaxStackSize(item.getMaxStack());
-
-        ItemDataComponents.applyLegacyCustomModelData(itemMeta, item);
     }
 
     private List<Component> createLore(ItemBaseModel item, int requirement, int polishingCount,
                                      ItemArmorModel armor, ArmorStatData statData) {
         List<Component> lore = new ArrayList<>();
 
-        // Add rarity at the top
         lore.add(Component.text("【" + RarityUtils.getIcon(item.getRarity()).getUnicode() + "】 " + "レアリティ: " + item.getRarity())
             .color(TextColor.fromHexString(RarityUtils.getColor(item.getRarity()).getHexCode()))
             .decoration(TextDecoration.ITALIC, false));
-        
-        // Add base lore
+
         for (String text : item.getLore()) {
             lore.add(Component.text(text)
                 .color(TextColor.fromHexString("#D8D8D8"))
                 .decoration(TextDecoration.ITALIC, false));
         }
 
-        // Add separator
         lore.add(Component.text("                          ")
             .color(NamedTextColor.DARK_GRAY)
             .decoration(TextDecoration.STRIKETHROUGH, true));
 
-        // Add requirement and modification info
         lore.add(buildInfoLine("必要レベル", String.valueOf(requirement)));
         lore.add(buildInfoLine("残り改造回数", String.valueOf(polishingCount)));
 
-        // Add durability if present
         int durability = 0;
         try {
             durability = (int) ItemArmorModel.class.getMethod("getDurability").invoke(armor);
         } catch (Exception e) {
-            // fallback for backward compatibility
+
         }
         if (durability > 0) {
             lore.add(buildInfoLine("耐久値", String.valueOf(durability)));
         }
 
-        // Add armor stats using ArmorStats enum
         for (ArmorStats stat : ArmorStats.values()) {
                 int finalValue = statData.getFinalValue(stat);
                 int performanceValue = statData.getPerformanceValue(stat);
-            if (finalValue != 0) { // 最終値が0以外（プラス・マイナス両方）を表示
+            if (finalValue != 0) {
                 lore.add(buildStatLine(stat.getDisplayName(),
                         String.valueOf(finalValue),
                         String.valueOf(performanceValue)));
@@ -251,14 +235,13 @@ public class ArmorItemConverter {
     private Component buildStatLine(String label, String value, String percent) {
         int performance = Integer.parseInt(percent);
         TextColor percentColor = getPerformanceColor(performance);
-        
-        // 値がマイナスの場合は赤色、プラスの場合は緑色で表示
+
         TextColor valueColor;
         try {
             int numValue = Integer.parseInt(value);
             valueColor = numValue < 0 ? NamedTextColor.RED : NamedTextColor.GREEN;
         } catch (NumberFormatException e) {
-            valueColor = NamedTextColor.GREEN; // デフォルト
+            valueColor = NamedTextColor.GREEN;
         }
 
         return Component.text(label + " : ")
@@ -283,42 +266,36 @@ public class ArmorItemConverter {
 
     private TextColor getPerformanceColor(int performance) {
         if (performance >= 100) {
-            return TextColor.fromHexString("#00FFFF"); // aqua
+            return TextColor.fromHexString("#00FFFF");
         } else if (performance >= 90) {
-            return TextColor.fromHexString("#32CD32"); // ライムグリーン
+            return TextColor.fromHexString("#32CD32");
         } else if (performance >= 80) {
-            return TextColor.fromHexString("#00FF00"); // 明るい緑
+            return TextColor.fromHexString("#00FF00");
         } else if (performance >= 70) {
-            return TextColor.fromHexString("#9ACD32"); // イエローグリーン
+            return TextColor.fromHexString("#9ACD32");
         } else if (performance >= 60) {
-            return TextColor.fromHexString("#ADFF2F"); // グリーンイエロー
+            return TextColor.fromHexString("#ADFF2F");
         } else if (performance >= 50) {
-            return TextColor.fromHexString("#FFFF00"); // 黄色
+            return TextColor.fromHexString("#FFFF00");
         } else if (performance >= 40) {
-            return TextColor.fromHexString("#FFD700"); // ゴールド
+            return TextColor.fromHexString("#FFD700");
         } else if (performance >= 30) {
-            return TextColor.fromHexString("#FFA500"); // オレンジ
+            return TextColor.fromHexString("#FFA500");
         } else if (performance >= 20) {
-            return TextColor.fromHexString("#FF8C00"); // ダークオレンジ
+            return TextColor.fromHexString("#FF8C00");
         } else if (performance >= 10) {
-            return TextColor.fromHexString("#FF4500"); // オレンジレッド
+            return TextColor.fromHexString("#FF4500");
         } else {
-            return TextColor.fromHexString("#FF0000"); // 赤
+            return TextColor.fromHexString("#FF0000");
         }
     }
 
-    /**
-     * Apply attribute modifiers to armor items. Removes default defense related
-     * attributes and applies movement speed based on ArmorStatData.
-     */
     private void applyAttributeModifiers(ItemMeta itemMeta, ArmorStatData statData) {
-        // Remove default attribute modifiers
         itemMeta.removeAttributeModifier(Attribute.ARMOR);
         itemMeta.removeAttributeModifier(Attribute.ARMOR_TOUGHNESS);
         itemMeta.removeAttributeModifier(Attribute.KNOCKBACK_RESISTANCE);
         itemMeta.removeAttributeModifier(Attribute.MOVEMENT_SPEED);
 
-        // Apply movement speed modifier from MOVEMENT_SPEED stat (value treated as ‰)
         int speedValue = statData.getFinalValue(ArmorStats.MOVEMENT_SPEED);
         if (speedValue != 0) {
             AttributeModifier movementModifier = new AttributeModifier(
@@ -335,15 +312,14 @@ public class ArmorItemConverter {
                                    int requiredLevel, int maxModification, int durability,
                                    ArmorStatData statData) {
         PersistentDataContainer container = itemMeta.getPersistentDataContainer();
-        
+
         container.set(keys.get("item_id"), PersistentDataType.STRING, item.getId());
         container.set(keys.get("item_version"), PersistentDataType.LONG, item.getVersion());
         container.set(keys.get("armor_type"), PersistentDataType.STRING, armorType != null ? armorType : "default");
         container.set(keys.get("required_level"), PersistentDataType.INTEGER, requiredLevel);
         container.set(keys.get("max_modification"), PersistentDataType.INTEGER, maxModification);
         container.set(keys.get("durability"), PersistentDataType.INTEGER, durability);
-        
-        // ArmorStatsを使用してデータを設定
+
         for (ArmorStats stat : ArmorStats.values()) {
             container.set(keys.get(stat.getKey()), PersistentDataType.INTEGER, statData.getFinalValue(stat));
             container.set(keys.get(stat.getPerformanceKey()), PersistentDataType.INTEGER, statData.getPerformanceValue(stat));
@@ -355,36 +331,31 @@ public class ArmorItemConverter {
         if (itemMeta == null) return false;
 
         PersistentDataContainer container = itemMeta.getPersistentDataContainer();
-        
-        // 現在のmaxModificationを取得
+
         int currentMaxModification = container.getOrDefault(keys.get("max_modification"), PersistentDataType.INTEGER, 0);
 
         if (currentMaxModification <= 0) {
             return false;
         }
 
-        // アイテムIDを取得してItemBaseModelを取得
         String itemId = container.getOrDefault(keys.get("item_id"), PersistentDataType.STRING, "");
         Optional<ItemBaseModel> optModel = ((AlcarisCore) Bukkit.getPluginManager().getPlugin("AlcarisCore")).getItemRegistry().get(itemId);
         if (optModel.isEmpty()) {
             return false;
         }
         ItemBaseModel baseModel = optModel.get();
-        
-        // LinkedTreeMapをItemArmorModelに変換
+
         ItemArmorModel armor = gson.fromJson(gson.toJson(baseModel.getData()), ItemArmorModel.class);
         if (armor == null) {
             return false;
         }
 
-        // 現在の性能値を取得してArmorStatDataに設定
         ArmorStatData statData = new ArmorStatData();
         for (ArmorStats stat : ArmorStats.values()) {
             int perf = container.getOrDefault(keys.get(stat.getPerformanceKey()), PersistentDataType.INTEGER, 0);
             statData.setPerformanceValue(stat, perf);
         }
 
-        // アップグレードタイプに応じて処理
         switch (type) {
             case ROLL_ALL:
                 for (ArmorStats stat : ArmorStats.values()) {
@@ -423,16 +394,13 @@ public class ArmorItemConverter {
                 break;
         }
 
-        // 性能値を更新
         for (ArmorStats stat : ArmorStats.values()) {
             container.set(keys.get(stat.getPerformanceKey()), PersistentDataType.INTEGER, statData.getPerformanceValue(stat));
         }
 
-        // maxModificationを減らす
         int newMaxModification = currentMaxModification - 1;
         container.set(keys.get("max_modification"), PersistentDataType.INTEGER, newMaxModification);
 
-        // アイテムのステータスを再計算（基礎値はItemArmorModelから取得）
         for (ArmorStats stat : ArmorStats.values()) {
             double baseValue = getArmorStatValue(armor, stat);
             int performance = statData.getPerformanceValue(stat);
@@ -440,38 +408,22 @@ public class ArmorItemConverter {
             statData.setFinalValue(stat, finalValue);
         }
 
-        // 最終ステータスを更新
         for (ArmorStats stat : ArmorStats.values()) {
             container.set(keys.get(stat.getKey()), PersistentDataType.INTEGER, statData.getFinalValue(stat));
         }
 
-        // アイテムの説明文を更新
         int requiredLevel = container.getOrDefault(keys.get("required_level"), PersistentDataType.INTEGER, 0);
 
-        // createLoreを使ってloreを再生成
         List<Component> lore = createLore(baseModel, requiredLevel, newMaxModification, armor, statData);
         itemMeta.lore(lore);
         itemStack.setItemMeta(itemMeta);
         return true;
     }
 
-    /**
-     * ArmorStatsに対応する基礎値を取得するヘルパーメソッド
-     *
-     * @param armor ItemArmorModelオブジェクト
-     * @param stat 取得したいステータス
-     * @return 対応する基礎値
-     */
     private double getArmorStatValue(ItemArmorModel armor, ArmorStats stat) {
-        // ArmorStatsのgetValueメソッドを使用して動的に値を取得
         return stat.getValue(armor);
     }
 
-    /**
-     * 防具のステータス情報を取得する
-     * @param itemStack 対象のItemStack
-     * @return ステータス情報のMap（nullの場合は無効なアイテム）
-     */
     public Map<String, Object> getArmorStats(ItemStack itemStack) {
         if (itemStack == null || itemStack.getType().isAir()) {
             return null;
@@ -484,7 +436,6 @@ public class ArmorItemConverter {
 
         PersistentDataContainer container = itemMeta.getPersistentDataContainer();
 
-        // アイテムIDを取得してItemBaseModelを取得
         String itemId = container.getOrDefault(keys.get("item_id"), PersistentDataType.STRING, "");
         if (itemId.isEmpty()) {
             return null;
@@ -496,24 +447,21 @@ public class ArmorItemConverter {
         }
         ItemBaseModel baseModel = optModel.get();
 
-        // LinkedTreeMapをItemArmorModelに変換
         ItemArmorModel armor = gson.fromJson(gson.toJson(baseModel.getData()), ItemArmorModel.class);
         if (armor == null) {
             return null;
         }
 
-        // 現在の性能値を取得
         ArmorStatData statData = new ArmorStatData();
         for (ArmorStats stat : ArmorStats.values()) {
             int perf = container.getOrDefault(keys.get(stat.getPerformanceKey()), PersistentDataType.INTEGER, 0);
             statData.setPerformanceValue(stat, perf);
         }
 
-        // 基礎値、最終値、性能値を計算
         Map<String, Object> stats = new LinkedHashMap<>();
         for (ArmorStats stat : ArmorStats.values()) {
             double baseValue = getArmorStatValue(armor, stat);
-            if (baseValue != 0) { // 基礎値が0でないもののみ
+            if (baseValue != 0) {
                 int performance = statData.getPerformanceValue(stat);
                 int finalValue = calculateFinalStat(baseValue, performance);
 

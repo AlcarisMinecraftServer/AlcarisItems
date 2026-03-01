@@ -27,11 +27,11 @@ public class MaterialItemConverter extends BaseItemConverter<Void> {
 
     @Override
     protected void setLoreItemData(List<Component> lore, ItemBaseModel item, Void data) {
-        // TODO: ステータス追加予定
+
     }
 
     @Override
     protected void setAdditionalMeta(ItemStack stack, ItemMeta meta, Void data) {
-        // TODO: カスタムメタ追加予定
+
     }
 }

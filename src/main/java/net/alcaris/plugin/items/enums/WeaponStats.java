@@ -44,16 +44,10 @@ public enum WeaponStats {
         return key + "_perf";
     }
 
-    /**
-     * ItemWeaponModelから対応するステータス値を取得
-     */
     public double getValue(ItemWeaponModel weapon) {
         return getter.apply(weapon);
     }
 
-    /**
-     * キー名からWeaponStatsを取得
-     */
     public static WeaponStats fromKey(String key) {
         return Arrays.stream(values())
                 .filter(stat -> stat.getKey().equalsIgnoreCase(key))
@@ -61,48 +55,33 @@ public enum WeaponStats {
                 .orElse(null);
     }
 
-    /**
-     * すべてのキー名を取得
-     */
     public static String[] getAllKeys() {
         return Arrays.stream(values())
                 .map(WeaponStats::getKey)
                 .toArray(String[]::new);
     }
 
-    /**
-     * すべてのキー名をStreamで取得
-     */
     public static Stream<String> getAllKeysStream() {
         return Arrays.stream(values())
                 .map(WeaponStats::getKey);
     }
 
-    /**
-     * すべてのバリューキーを取得（PersistentDataContainer用）
-     */
     public static String[] getAllValueKeys() {
         return Arrays.stream(values())
                 .map(WeaponStats::getKey)
                 .toArray(String[]::new);
     }
 
-    /**
-     * すべてのパフォーマンスキーを取得（PersistentDataContainer用）
-     */
     public static String[] getAllPerformanceKeys() {
         return Arrays.stream(values())
                 .map(WeaponStats::getPerformanceKey)
                 .toArray(String[]::new);
     }
 
-    /**
-     * PersistentDataContainer用のすべてのキーを取得
-     */
     public static String[] getAllPersistentKeys() {
         List<String> keys = Arrays.stream(values())
                 .flatMap(stat -> Stream.of(stat.getKey(), stat.getPerformanceKey()))
                 .toList();
         return keys.toArray(new String[0]);
     }
-} 
+}

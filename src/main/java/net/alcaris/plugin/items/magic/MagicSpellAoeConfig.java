@@ -3,7 +3,7 @@ package net.alcaris.plugin.items.magic;
 public class MagicSpellAoeConfig {
     private final double radius;
     private final double damage;
-    private final int igniteSeconds; // 0 to disable
+    private final int igniteSeconds;
 
     public MagicSpellAoeConfig(double radius, double damage, int igniteSeconds) {
         this.radius = radius;
@@ -23,5 +23,3 @@ public class MagicSpellAoeConfig {
         return igniteSeconds;
     }
 }
-
-

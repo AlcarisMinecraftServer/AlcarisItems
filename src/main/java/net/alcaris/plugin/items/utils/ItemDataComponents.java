@@ -9,7 +9,6 @@ import net.alcaris.plugin.items.AlcarisItems;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Color;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
@@ -26,27 +25,6 @@ public final class ItemDataComponents {
     private ItemDataComponents() {
     }
 
-    /**
-     * Backward compatible: apply legacy integer custom model data.
-     * <p>
-     * New Natsume schema uses the structured {@code custom_model_data} component.
-     * This method only handles the old integer getter.
-     */
-    public static void applyLegacyCustomModelData(ItemMeta meta, ItemBaseModel item) {
-        Object raw = readValue(item, "getCustomModelData", "custom_model_data", "customModelData");
-        if (!(raw instanceof Number n)) {
-            return;
-        }
-
-        int legacy = n.intValue();
-        if (legacy != 0) {
-            meta.setCustomModelData(legacy);
-        }
-    }
-
-    /**
-     * Apply new item data components (item_model / tooltip_style / custom_model_data) if present.
-     */
     @SuppressWarnings("UnstableApiUsage")
     public static void apply(ItemStack stack, ItemBaseModel item) {
         if (stack == null || item == null) {
@@ -58,7 +36,7 @@ public final class ItemDataComponents {
             try {
                 stack.setData(DataComponentTypes.ITEM_MODEL, Key.key(itemModel));
             } catch (IllegalArgumentException e) {
-                log(Level.WARNING, "Invalid item_model key: " + itemModel, e);
+                log("Invalid item_model key: " + itemModel, e);
             }
         }
 
@@ -67,7 +45,7 @@ public final class ItemDataComponents {
             try {
                 stack.setData(DataComponentTypes.TOOLTIP_STYLE, Key.key(tooltipStyle));
             } catch (IllegalArgumentException e) {
-                log(Level.WARNING, "Invalid tooltip_style key: " + tooltipStyle, e);
+                log("Invalid tooltip_style key: " + tooltipStyle, e);
             }
         }
 
@@ -91,7 +69,6 @@ public final class ItemDataComponents {
             }
         }
 
-        // Legacy schema: integer custom model data.
         if (raw instanceof Number) {
             return null;
         }
@@ -114,7 +91,7 @@ public final class ItemDataComponents {
                     map = m;
                 }
             } catch (Exception e) {
-                log(Level.WARNING, "Failed to deserialize custom_model_data", e);
+                log("Failed to deserialize custom_model_data", e);
                 return null;
             }
         }
@@ -182,7 +159,7 @@ public final class ItemDataComponents {
             return list;
         }
         if (value.getClass().isArray()) {
-            // best-effort; Gson should normally give List.
+
             return List.of((Object[]) value);
         }
         return List.of(value);
@@ -192,7 +169,6 @@ public final class ItemDataComponents {
     private static Color parseColor(Object value) {
         if (value instanceof Number n) {
             int argb = n.intValue();
-            // Treat values with alpha bits (or negative ints) as ARGB; otherwise RGB.
             if ((argb & 0xFF000000) != 0) {
                 return Color.fromARGB(argb);
             }
@@ -256,7 +232,7 @@ public final class ItemDataComponents {
         } catch (NoSuchMethodException ignored) {
             return null;
         } catch (Exception e) {
-            log(Level.WARNING, "Failed to invoke " + methodName + " on " + target.getClass().getName(), e);
+            log("Failed to invoke " + methodName + " on " + target.getClass().getName(), e);
             return null;
         }
     }
@@ -270,20 +246,20 @@ public final class ItemDataComponents {
         } catch (NoSuchFieldException ignored) {
             return null;
         } catch (Exception e) {
-            log(Level.WARNING, "Failed to read field " + fieldName + " on " + target.getClass().getName(), e);
+            log("Failed to read field " + fieldName + " on " + target.getClass().getName(), e);
             return null;
         }
     }
 
-    private static void log(Level level, String message, Throwable t) {
+    private static void log(String message, Throwable t) {
         AlcarisItems plugin = AlcarisItems.getInstance();
         if (plugin == null) {
             return;
         }
         if (t == null) {
-            plugin.getLogger().log(level, message);
+            plugin.getLogger().log(Level.WARNING, message);
         } else {
-            plugin.getLogger().log(level, message, t);
+            plugin.getLogger().log(Level.WARNING, message, t);
         }
     }
 }

@@ -22,7 +22,7 @@ public class ItemConverter {
     public ItemConverter(
             FoodItemConverter foodItemConverter,
             ToolItemConverter toolItemConverter,
-            MaterialItemConverter materialItemConverter, 
+            MaterialItemConverter materialItemConverter,
             WeaponItemConverter weaponItemConverter,
             ArmorItemConverter armorItemConverter
     ) {

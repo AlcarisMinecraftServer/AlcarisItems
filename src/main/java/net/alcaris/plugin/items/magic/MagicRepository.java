@@ -78,5 +78,3 @@ public class MagicRepository {
     public MagicSpell get(String id) { return idToSpell.get(id); }
     public Collection<MagicSpell> getAll() { return idToSpell.values(); }
 }
-
-

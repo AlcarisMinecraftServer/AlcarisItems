@@ -4,8 +4,8 @@ import java.util.List;
 
 public class MagicSpellBuffConfig {
     public static class EffectSpec {
-        public final String type; // PotionEffectType name
-        public final int amplifier; // 0-based
+        public final String type;
+        public final int amplifier;
         public final int durationTicks;
 
         public EffectSpec(String type, int amplifier, int durationTicks) {
@@ -25,5 +25,3 @@ public class MagicSpellBuffConfig {
         return effects;
     }
 }
-
-

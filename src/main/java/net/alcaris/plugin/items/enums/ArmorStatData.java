@@ -3,15 +3,12 @@ package net.alcaris.plugin.items.enums;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * 防具ステータスデータを管理するヘルパークラス
- */
 public class ArmorStatData {
     private final Map<ArmorStats, Integer> finalValues = new HashMap<>();
     private final Map<ArmorStats, Integer> performanceValues = new HashMap<>();
 
     public ArmorStatData() {
-        // 初期化
+
         for (ArmorStats stat : ArmorStats.values()) {
             finalValues.put(stat, 0);
             performanceValues.put(stat, 0);
@@ -42,9 +39,6 @@ public class ArmorStatData {
         return new HashMap<>(performanceValues);
     }
 
-    /**
-     * 配列から値を設定
-     */
     public void setFromArrays(int[] finalValues, int[] performanceValues) {
         ArmorStats[] stats = ArmorStats.values();
         for (int i = 0; i < stats.length && i < finalValues.length && i < performanceValues.length; i++) {
@@ -53,9 +47,6 @@ public class ArmorStatData {
         }
     }
 
-    /**
-     * 配列として取得
-     */
     public int[] getFinalValuesAsArray() {
         ArmorStats[] stats = ArmorStats.values();
         int[] result = new int[stats.length];
@@ -73,4 +64,4 @@ public class ArmorStatData {
         }
         return result;
     }
-} 
+}

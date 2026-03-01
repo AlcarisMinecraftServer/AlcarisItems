@@ -79,7 +79,6 @@ public abstract class BaseItemConverter<T> {
 
     protected void setBasicMeta(ItemMeta meta, ItemBaseModel item) {
         meta.setMaxStackSize(item.getMaxStack());
-        ItemDataComponents.applyLegacyCustomModelData(meta, item);
     }
 
     protected void setLoreDescription(List<Component> lore, ItemBaseModel item) {

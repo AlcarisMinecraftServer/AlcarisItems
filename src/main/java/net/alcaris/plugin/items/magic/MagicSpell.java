@@ -7,7 +7,6 @@ public class MagicSpell {
     private final int cooldownTicks;
     private final MagicType type;
 
-    // Type-specific configuration (only one will be used depending on type)
     private final MagicSpellBuffConfig buffConfig;
     private final MagicSpellAoeConfig aoeConfig;
     private final MagicSpellThrowConfig throwConfig;
@@ -64,5 +63,3 @@ public class MagicSpell {
         return throwConfig;
     }
 }
-
-

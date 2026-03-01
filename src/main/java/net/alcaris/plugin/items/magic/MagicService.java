@@ -28,7 +28,7 @@ public class MagicService {
     private final NamespacedKey selectedMagicKey;
     private final NamespacedKey mpKey;
     private final Map<UUID, Map<String, Long>> playerCooldowns = new HashMap<>();
-    private Object playerStatsRepository; // AlcarisPlayers repository (loaded via reflection)
+    private Object playerStatsRepository;
     private Class<?> playerStatsRepositoryClass;
 
     public MagicService(AlcarisItems plugin, MagicRepository repository) {
@@ -37,7 +37,6 @@ public class MagicService {
         this.selectedMagicKey = new NamespacedKey(plugin, "selected_magic");
         this.mpKey = new NamespacedKey(plugin, "mp");
 
-        // Try to load AlcarisPlayer repository using provider plugin's classloader and Bukkit Services
         try {
             Plugin ap = Bukkit.getPluginManager().getPlugin("AlcarisPlayer");
             if (ap != null) {
@@ -50,11 +49,6 @@ public class MagicService {
                 RegisteredServiceProvider<?> reg = Bukkit.getServicesManager().getRegistration((Class) this.playerStatsRepositoryClass);
                 if (reg != null) {
                     this.playerStatsRepository = reg.getProvider();
-                    for (Class<?> inner : playerStatsRepositoryClass.getDeclaredClasses()) {
-                        if (inner.getSimpleName().equals("GameStatsView")) {
-                            break;
-                        }
-                    }
                     plugin.getLogger().info("AlcarisPlayer repository hooked.");
                 } else {
                     plugin.getLogger().warning("AlcarisPlayer service not found. Falling back to PDC MP.");
@@ -67,6 +61,52 @@ public class MagicService {
         }
     }
 
+    private Object tryGetRepositoryStatsView(Player player) {
+        if (playerStatsRepository == null || playerStatsRepositoryClass == null) {
+            return null;
+        }
+        try {
+            Method getStats = playerStatsRepositoryClass.getMethod("getStats", Player.class);
+            return getStats.invoke(playerStatsRepository, player);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private Object tryGetLegacyStatsHolder(Player player) {
+        try {
+            Plugin ap = Bukkit.getPluginManager().getPlugin("AlcarisPlayer");
+            if (ap == null) {
+                return null;
+            }
+            ClassLoader apCl = ap.getClass().getClassLoader();
+            Class<?> pgsClass = Class.forName("somen1000.trump.alcarisPlayer.data.PlayerGameStats", true, apCl);
+
+            Object pgsInstance = null;
+            try {
+                Method getInstance = pgsClass.getMethod("getInstance");
+                pgsInstance = getInstance.invoke(null);
+            } catch (NoSuchMethodException ignored) {
+            }
+
+            Method getGameStats = pgsClass.getMethod("getGameStats", Player.class);
+            return pgsInstance != null
+                    ? getGameStats.invoke(pgsInstance, player)
+                    : getGameStats.invoke(null, player);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static double invokeDoubleNoArgs(Object target, String methodName, double fallback) {
+        try {
+            Method m = target.getClass().getMethod(methodName);
+            return ((Number) m.invoke(target)).doubleValue();
+        } catch (Throwable ignored) {
+            return fallback;
+        }
+    }
+
     public void setSelectedMagic(Player player, String id) {
         player.getPersistentDataContainer().set(selectedMagicKey, PersistentDataType.STRING, id);
     }
@@ -76,73 +116,45 @@ public class MagicService {
     }
 
     public int getPlayerMp(Player player) {
-        if (playerStatsRepository != null) {
-            try {
-                Method getStats = playerStatsRepositoryClass.getMethod("getStats", Player.class);
-                Object view = getStats.invoke(playerStatsRepository, player);
-                if (view != null) {
-                    Method getMp = view.getClass().getMethod("getMp");
-                    double mp = ((Number) getMp.invoke(view)).doubleValue();
-                    return (int) Math.floor(mp + 1e-6);
-                }
-            } catch (Throwable ignored) {}
+        Object view = tryGetRepositoryStatsView(player);
+        if (view != null) {
+            double mp = invokeDoubleNoArgs(view, "getMp", 0.0);
+            return (int) Math.floor(mp + 1e-6);
         }
-        // Fallback: direct reflection to PlayerGameStats
-        try {
-            Plugin ap = Bukkit.getPluginManager().getPlugin("AlcarisPlayer");
-            if (ap != null) {
-                ClassLoader apCl = ap.getClass().getClassLoader();
-                Class<?> pgsClass = Class.forName("somen1000.trump.alcarisPlayer.data.PlayerGameStats", true, apCl);
-                Object pgsInstance = null;
-                try {
-                    Method getInstance = pgsClass.getMethod("getInstance");
-                    pgsInstance = getInstance.invoke(null);
-                } catch (NoSuchMethodException ignored) {}
-                Object statsHolder;
-                Method getGameStats = pgsClass.getMethod("getGameStats", Player.class);
-                statsHolder = pgsInstance != null ? getGameStats.invoke(pgsInstance, player) : getGameStats.invoke(null, player);
-                if (statsHolder != null) {
-                    Method getMp = statsHolder.getClass().getMethod("getMp");
-                    double mp = ((Number) getMp.invoke(statsHolder)).doubleValue();
-                    return (int) Math.floor(mp + 1e-6);
-                }
-            }
-        } catch (Throwable ignored) {}
+
+        Object legacy = tryGetLegacyStatsHolder(player);
+        if (legacy != null) {
+            double mp = invokeDoubleNoArgs(legacy, "getMp", 0.0);
+            return (int) Math.floor(mp + 1e-6);
+        }
+
         Integer v = player.getPersistentDataContainer().get(mpKey, PersistentDataType.INTEGER);
         return v == null ? 0 : v;
     }
 
     public void setPlayerMp(Player player, int mp) {
+        int clamped = Math.max(mp, 0);
+
         if (playerStatsRepository != null) {
             try {
                 Method setMp = playerStatsRepositoryClass.getMethod("setMp", Player.class, double.class);
-                Object res = setMp.invoke(playerStatsRepository, player, (double) Math.max(mp, 0));
+                Object res = setMp.invoke(playerStatsRepository, player, (double) clamped);
                 if (res instanceof Boolean b && b) return;
-                // fall through to fallback if repository refused
-            } catch (Throwable ignored) {}
-        }
-        // Fallback: direct reflection to PlayerGameStats
-        try {
-            Plugin ap = Bukkit.getPluginManager().getPlugin("AlcarisPlayer");
-            if (ap != null) {
-                ClassLoader apCl = ap.getClass().getClassLoader();
-                Class<?> pgsClass = Class.forName("somen1000.trump.alcarisPlayer.data.PlayerGameStats", true, apCl);
-                Object pgsInstance = null;
-                try {
-                    Method getInstance = pgsClass.getMethod("getInstance");
-                    pgsInstance = getInstance.invoke(null);
-                } catch (NoSuchMethodException ignored) {}
-                Object statsHolder;
-                Method getGameStats = pgsClass.getMethod("getGameStats", Player.class);
-                statsHolder = pgsInstance != null ? getGameStats.invoke(pgsInstance, player) : getGameStats.invoke(null, player);
-                if (statsHolder != null) {
-                    Method setMpM = statsHolder.getClass().getMethod("setMp", double.class);
-                    setMpM.invoke(statsHolder, (double) Math.max(mp, 0));
-                    return;
-                }
+            } catch (Throwable ignored) {
             }
-        } catch (Throwable ignored) {}
-        player.getPersistentDataContainer().set(mpKey, PersistentDataType.INTEGER, Math.max(mp, 0));
+        }
+
+        Object legacy = tryGetLegacyStatsHolder(player);
+        if (legacy != null) {
+            try {
+                Method setMpM = legacy.getClass().getMethod("setMp", double.class);
+                setMpM.invoke(legacy, (double) clamped);
+                return;
+            } catch (Throwable ignored) {
+            }
+        }
+
+        player.getPersistentDataContainer().set(mpKey, PersistentDataType.INTEGER, clamped);
     }
 
     public boolean consumeMp(Player player, int amount) {
@@ -152,37 +164,25 @@ public class MagicService {
                 Object res = removeMp.invoke(playerStatsRepository, player, (double) amount);
                 if (res instanceof Boolean b) {
                     if (b) return true;
-                    // if repository refused, try fallback instead of failing immediately
                 } else {
-                    // unknown return type → assume success
                     return true;
                 }
-            } catch (Throwable ignored) {}
-        }
-        // Fallback: direct reflection to PlayerGameStats
-        try {
-            Plugin ap = Bukkit.getPluginManager().getPlugin("AlcarisPlayer");
-            if (ap != null) {
-                ClassLoader apCl = ap.getClass().getClassLoader();
-                Class<?> pgsClass = Class.forName("somen1000.trump.alcarisPlayer.data.PlayerGameStats", true, apCl);
-                Object pgsInstance = null;
-                try {
-                    Method getInstance = pgsClass.getMethod("getInstance");
-                    pgsInstance = getInstance.invoke(null);
-                } catch (NoSuchMethodException ignored) {}
-                Object statsHolder;
-                Method getGameStats = pgsClass.getMethod("getGameStats", Player.class);
-                statsHolder = pgsInstance != null ? getGameStats.invoke(pgsInstance, player) : getGameStats.invoke(null, player);
-                if (statsHolder != null) {
-                    Method getMpM = statsHolder.getClass().getMethod("getMp");
-                    double cur = ((Number) getMpM.invoke(statsHolder)).doubleValue();
-                    if (cur < amount) return false;
-                    Method setMpM = statsHolder.getClass().getMethod("setMp", double.class);
-                    setMpM.invoke(statsHolder, cur - amount);
-                    return true;
-                }
+            } catch (Throwable ignored) {
             }
-        } catch (Throwable ignored) {}
+        }
+
+        Object legacy = tryGetLegacyStatsHolder(player);
+        if (legacy != null) {
+            try {
+                double cur = invokeDoubleNoArgs(legacy, "getMp", 0.0);
+                if (cur < amount) return false;
+                Method setMpM = legacy.getClass().getMethod("setMp", double.class);
+                setMpM.invoke(legacy, cur - amount);
+                return true;
+            } catch (Throwable ignored) {
+            }
+        }
+
         int cur = getPlayerMp(player);
         if (cur < amount) return false;
         setPlayerMp(player, cur - amount);
@@ -190,44 +190,26 @@ public class MagicService {
     }
 
     public double getAbilityDamageMultiplier(Player player) {
-        if (playerStatsRepository != null) {
-            try {
-                Method getStats = playerStatsRepositoryClass.getMethod("getStats", Player.class);
-                Object view = getStats.invoke(playerStatsRepository, player);
-                if (view != null) {
-                    String statName = plugin.getConfig().getString("magic.abilityMultiplierStat", "mat");
-                    double scale = plugin.getConfig().getDouble("magic.abilityMultiplierScale", 0.01);
-                    String methodName = "get" + statName.substring(0, 1).toUpperCase(Locale.ROOT) + statName.substring(1);
-                    Method getter = view.getClass().getMethod(methodName);
-                    double statValue = ((Number) getter.invoke(view)).doubleValue();
-                    return Math.max(0.0, 1.0 + statValue * scale);
-                }
-            } catch (Throwable ignored) {}
-        }
-        // Fallback: direct reflection to PlayerGameStats
-        try {
-            Plugin ap = Bukkit.getPluginManager().getPlugin("AlcarisPlayer");
-            if (ap != null) {
-                ClassLoader apCl = ap.getClass().getClassLoader();
-                Class<?> pgsClass = Class.forName("somen1000.trump.alcarisPlayer.data.PlayerGameStats", true, apCl);
-                Object pgsInstance = null;
-                try {
-                    Method getInstance = pgsClass.getMethod("getInstance");
-                    pgsInstance = getInstance.invoke(null);
-                } catch (NoSuchMethodException ignored) {}
-                Object statsHolder;
-                Method getGameStats = pgsClass.getMethod("getGameStats", Player.class);
-                statsHolder = pgsInstance != null ? getGameStats.invoke(pgsInstance, player) : getGameStats.invoke(null, player);
-                if (statsHolder != null) {
-                    String statName = plugin.getConfig().getString("magic.abilityMultiplierStat", "mat");
-                    double scale = plugin.getConfig().getDouble("magic.abilityMultiplierScale", 0.01);
-                    String methodName = "get" + statName.substring(0, 1).toUpperCase(Locale.ROOT) + statName.substring(1);
-                    Method getter = statsHolder.getClass().getMethod(methodName);
-                    double statValue = ((Number) getter.invoke(statsHolder)).doubleValue();
-                    return Math.max(0.0, 1.0 + statValue * scale);
-                }
+        String statName = plugin.getConfig().getString("magic.abilityMultiplierStat", "mat");
+        double scale = plugin.getConfig().getDouble("magic.abilityMultiplierScale", 0.01);
+        String methodName = "get" + statName.substring(0, 1).toUpperCase(Locale.ROOT) + statName.substring(1);
+
+        Object view = tryGetRepositoryStatsView(player);
+        if (view != null) {
+            double statValue = invokeDoubleNoArgs(view, methodName, Double.NaN);
+            if (!Double.isNaN(statValue)) {
+                return Math.max(0.0, 1.0 + statValue * scale);
             }
-        } catch (Throwable ignored) {}
+        }
+
+        Object legacy = tryGetLegacyStatsHolder(player);
+        if (legacy != null) {
+            double statValue = invokeDoubleNoArgs(legacy, methodName, Double.NaN);
+            if (!Double.isNaN(statValue)) {
+                return Math.max(0.0, 1.0 + statValue * scale);
+            }
+        }
+
         return 1.0;
     }
 
@@ -309,5 +291,3 @@ public class MagicService {
         projectile.getPersistentDataContainer().set(new NamespacedKey(plugin, "magic_throw_damage"), PersistentDataType.DOUBLE, cfg.getDamage());
     }
 }
-
-

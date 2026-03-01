@@ -1,26 +1,24 @@
 package net.alcaris.plugin.items.enums;
 
 public enum TextureIcons {
-    // ステータス用
-    HP("\uE100"), // HP
-    HP_REGEN("\uE101"), // HP自然回復
-    MP("\uE102"), // MP
-    MP_REGEN("\uE103"), // MP自然回復
-    STR("\uE104"), // 物理
-    INT("\uE105"), // 魔法・賢さ
-    DEX("\uE106"), // 器用
-    DEF("\uE108"), // 防御
-    AGI("\uE109"), // 素早さ
-    CUT("\uE10A"), // 会心
-    LUC("\uE10B"), // 幸運
-    LVL("\uE100"), // レベル
-    EXP("\uE100"), // 経験値
 
-    // アイコン用
-    HUNGER_10("\uE10C"), // 満腹度 1.0
-    HUNGER_05("\uE10D"), // 満腹度 0.5
+    HP("\uE100"),
+    HP_REGEN("\uE101"),
+    MP("\uE102"),
+    MP_REGEN("\uE103"),
+    STR("\uE104"),
+    INT("\uE105"),
+    DEX("\uE106"),
+    DEF("\uE108"),
+    AGI("\uE109"),
+    CUT("\uE10A"),
+    LUC("\uE10B"),
+    LVL("\uE100"),
+    EXP("\uE100"),
 
-    // レアリティ用
+    HUNGER_10("\uE10C"),
+    HUNGER_05("\uE10D"),
+
     RARITY_1("\uE150"),
     RARITY_2("\uE151"),
     RARITY_3("\uE152"),

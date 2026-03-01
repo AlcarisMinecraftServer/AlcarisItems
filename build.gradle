@@ -21,16 +21,11 @@ repositories {
         name = "alcaris-repository"
         url = "https://repo.onp.admin.alcaris.net/releases"
     }
-    maven {
-        name = "himajyun-repo"
-        url = "https://himajyun.github.io/mvn-repo/"
-    }
 }
 
 dependencies {
     compileOnly "io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT"
     compileOnly "net.alcaris:AlcarisCore:1.2.7"
-    compileOnly "jp.jyn:Jecon:2.2.1"
 }
 
 def targetJavaVersion = 21

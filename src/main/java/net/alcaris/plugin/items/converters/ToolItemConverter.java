@@ -43,7 +43,7 @@ public class ToolItemConverter extends BaseItemConverter<ItemToolModel> {
 
     @Override
     protected void setLoreItemData(List<Component> lore, ItemBaseModel item, ItemToolModel tool) {
-        // TODO: ツールのステータスを実装（耐久値、採掘可能）
+
     }
 
     @Override

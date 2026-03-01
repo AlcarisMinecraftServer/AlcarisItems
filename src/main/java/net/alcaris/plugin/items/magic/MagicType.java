@@ -5,5 +5,3 @@ public enum MagicType {
     AOE,
     THROW
 }
-
-

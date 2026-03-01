@@ -59,7 +59,6 @@ public class FoodItemConverter extends BaseItemConverter<ItemFoodModel> {
                         )
         );
 
-        // region 満腹度
         int nutrition = food.getNutrition();
         int full = nutrition / 2;
         boolean hasHalf = nutrition % 2 != 0;
@@ -78,9 +77,7 @@ public class FoodItemConverter extends BaseItemConverter<ItemFoodModel> {
                                         .append(Component.text(result + "\uF802"))
                         )
         );
-        // endregion
 
-        // region エフェクト
         if (food.getEffects() != null && !food.getEffects().isEmpty()) {
             for (Common.Effect effect : food.getEffects()) {
                 String id = effect.getEffect();
@@ -100,11 +97,7 @@ public class FoodItemConverter extends BaseItemConverter<ItemFoodModel> {
                 );
             }
         }
-        // endregion
 
-        // region バフ
-        // TODO: あとで
-        // endregion
     }
 
     @Override
