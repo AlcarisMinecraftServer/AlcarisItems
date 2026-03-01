@@ -44,8 +44,7 @@ public class MagicRepository {
                         List<?> list = conf.getList("effects");
                         if (list != null) {
                             for (Object o : list) {
-                                if (o instanceof Map) {
-                                    Map<?,?> m = (Map<?,?>) o;
+                                if (o instanceof Map<?, ?> m) {
                                     String t = Objects.toString(m.get("type"), "SPEED");
                                     int amp = Integer.parseInt(Objects.toString(m.get("amplifier"), "0"));
                                     int dur = Integer.parseInt(Objects.toString(m.get("duration"), "200"));

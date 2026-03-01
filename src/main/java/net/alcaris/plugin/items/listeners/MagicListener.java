@@ -63,7 +63,7 @@ public class MagicListener implements Listener {
         proj.getWorld().spawnParticle(Particle.EXPLOSION, proj.getLocation(), 5, radius / 3, radius / 3, radius / 3, 0.02);
         proj.getWorld().playSound(proj.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1f, 1f);
         for (Entity e : proj.getNearbyEntities(radius, radius, radius)) {
-            if (shooter != null && e.equals(shooter)) continue;
+            if (e.equals(shooter)) continue;
             if (e instanceof org.bukkit.entity.LivingEntity le) {
                 double multiplier = shooter instanceof Player p ? plugin.getMagicService().getAbilityDamageMultiplier(p) : 1.0;
                 le.damage(damage * multiplier, shooter != null ? shooter : proj);

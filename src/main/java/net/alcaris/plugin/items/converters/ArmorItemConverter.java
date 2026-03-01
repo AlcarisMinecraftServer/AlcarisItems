@@ -203,9 +203,7 @@ public class ArmorItemConverter {
         int durability = 0;
         try {
             durability = (int) ItemArmorModel.class.getMethod("getDurability").invoke(armor);
-        } catch (Exception e) {
-
-        }
+        } catch (Exception ignored) {}
         if (durability > 0) {
             lore.add(buildInfoLine("耐久値", String.valueOf(durability)));
         }

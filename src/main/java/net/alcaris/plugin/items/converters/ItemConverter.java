@@ -1,7 +1,6 @@
 package net.alcaris.plugin.items.converters;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.core.model.item.ItemFoodModel;
 import net.alcaris.plugin.core.model.item.ItemToolModel;
