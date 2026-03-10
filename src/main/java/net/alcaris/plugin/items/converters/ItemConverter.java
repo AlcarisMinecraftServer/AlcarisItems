@@ -7,6 +7,7 @@ import net.alcaris.plugin.core.model.item.ItemToolModel;
 import net.alcaris.plugin.core.model.item.ItemWeaponModel;
 import net.alcaris.plugin.core.model.item.ItemArmorModel;
 import net.alcaris.plugin.items.AlcarisItems;
+import net.alcaris.plugin.items.lib.MaterialScoreData;
 import org.bukkit.inventory.ItemStack;
 
 public class ItemConverter {
@@ -65,7 +66,10 @@ public class ItemConverter {
                         ? armorItemConverter.updateItem(item, armorData, amount, oldStack)
                         : armorItemConverter.createNewItem(item, armorData, amount);
             }
-            case MATERIAL -> result = materialItemConverter.createItem(item, null, amount);
+            case MATERIAL -> {
+                MaterialScoreData materialData = gson.fromJson(gson.toJson(item.getData()), MaterialScoreData.class);
+                result = materialItemConverter.createItem(item, materialData, amount);
+            }
         }
 
         return result;
