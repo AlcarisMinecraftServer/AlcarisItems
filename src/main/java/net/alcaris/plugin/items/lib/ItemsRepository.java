@@ -105,11 +105,7 @@ public class ItemsRepository {
     }
 
     public Map<String, Integer> getMaterialScores(ItemStack itemStack) {
-        Map<String, Integer> scores = new LinkedHashMap<>();
-
-        for (String key : MaterialScoreData.SCORE_KEYS) {
-            scores.put(key, 0);
-        }
+        Map<String, Integer> scores = new LinkedHashMap<>(MaterialScoreUtils.toOrderedMap(null));
 
         if (itemStack == null || itemStack.getType().isAir()) {
             return scores;
@@ -121,7 +117,7 @@ public class ItemsRepository {
         }
 
         PersistentDataContainer container = itemMeta.getPersistentDataContainer();
-        for (String key : MaterialScoreData.SCORE_KEYS) {
+        for (String key : MaterialScoreUtils.SCORE_KEYS) {
             scores.put(key, container.getOrDefault(new NamespacedKey(plugin, key), PersistentDataType.INTEGER, 0));
         }
 
@@ -129,7 +125,7 @@ public class ItemsRepository {
     }
 
     public int getMaterialScore(ItemStack itemStack, String key) {
-        if (key == null || !MaterialScoreData.SCORE_KEYS.contains(key)) {
+        if (key == null || !MaterialScoreUtils.SCORE_KEYS.contains(key)) {
             return 0;
         }
 

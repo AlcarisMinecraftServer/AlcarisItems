@@ -2,7 +2,7 @@ package net.alcaris.plugin.items.converters;
 
 import net.alcaris.plugin.core.model.item.ItemBaseModel;
 import net.alcaris.plugin.items.AlcarisItems;
-import net.alcaris.plugin.items.lib.MaterialScoreData;
+import net.alcaris.plugin.items.lib.MaterialScoreUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -16,7 +16,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
 
-public class MaterialItemConverter extends BaseItemConverter<MaterialScoreData> {
+public class MaterialItemConverter extends BaseItemConverter<Object> {
 
     public MaterialItemConverter(AlcarisItems plugin) {
         super(plugin);
@@ -33,22 +33,20 @@ public class MaterialItemConverter extends BaseItemConverter<MaterialScoreData> 
     }
 
     @Override
-    protected void setLoreItemData(List<Component> lore, ItemBaseModel item, MaterialScoreData data) {
-        MaterialScoreData scoreData = data != null ? data : new MaterialScoreData();
-
+    protected void setLoreItemData(List<Component> lore, ItemBaseModel item, Object data) {
         lore.add(Component.text("魔法効果:")
                 .color(NamedTextColor.WHITE)
                 .decoration(TextDecoration.ITALIC, false));
 
-        if (!scoreData.hasAnyScore()) {
+        if (!MaterialScoreUtils.hasAnyScore(data)) {
             lore.add(Component.text("  なし")
                     .color(NamedTextColor.GRAY)
                     .decoration(TextDecoration.ITALIC, false));
             return;
         }
 
-        for (String key : MaterialScoreData.SCORE_KEYS) {
-            int value = scoreData.getScore(key);
+        for (String key : MaterialScoreUtils.SCORE_KEYS) {
+            int value = MaterialScoreUtils.getScore(data, key);
             if (value == 0) {
                 continue;
             }
@@ -63,12 +61,11 @@ public class MaterialItemConverter extends BaseItemConverter<MaterialScoreData> 
     }
 
     @Override
-    protected void setAdditionalMeta(ItemStack stack, ItemMeta meta, MaterialScoreData data) {
-        MaterialScoreData scoreData = data != null ? data : new MaterialScoreData();
+    protected void setAdditionalMeta(ItemStack stack, ItemMeta meta, Object data) {
         PersistentDataContainer container = meta.getPersistentDataContainer();
 
-        for (String key : MaterialScoreData.SCORE_KEYS) {
-            container.set(new NamespacedKey(plugin, key), PersistentDataType.INTEGER, scoreData.getScore(key));
+        for (String key : MaterialScoreUtils.SCORE_KEYS) {
+            container.set(new NamespacedKey(plugin, key), PersistentDataType.INTEGER, MaterialScoreUtils.getScore(data, key));
         }
     }
 
