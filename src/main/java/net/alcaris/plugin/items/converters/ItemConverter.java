@@ -65,7 +65,7 @@ public class ItemConverter {
                         ? armorItemConverter.updateItem(item, armorData, amount, oldStack)
                         : armorItemConverter.createNewItem(item, armorData, amount);
             }
-            case MATERIAL -> result = materialItemConverter.createItem(item, null, amount);
+            case MATERIAL -> result = materialItemConverter.createItem(item, item.getData(), amount);
         }
 
         return result;

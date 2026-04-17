@@ -13,6 +13,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.Map;
 
@@ -101,5 +102,33 @@ public class ItemsRepository {
     public Map<String, Object> getArmorStats(ItemStack itemStack) {
         ArmorItemConverter armorItemConverter = new ArmorItemConverter(plugin);
         return armorItemConverter.getArmorStats(itemStack);
+    }
+
+    public Map<String, Integer> getMaterialScores(ItemStack itemStack) {
+        Map<String, Integer> scores = new LinkedHashMap<>(MaterialScoreUtils.toOrderedMap(null));
+
+        if (itemStack == null || itemStack.getType().isAir()) {
+            return scores;
+        }
+
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (itemMeta == null) {
+            return scores;
+        }
+
+        PersistentDataContainer container = itemMeta.getPersistentDataContainer();
+        for (String key : MaterialScoreUtils.SCORE_KEYS) {
+            scores.put(key, container.getOrDefault(new NamespacedKey(plugin, key), PersistentDataType.INTEGER, 0));
+        }
+
+        return scores;
+    }
+
+    public int getMaterialScore(ItemStack itemStack, String key) {
+        if (key == null || !MaterialScoreUtils.SCORE_KEYS.contains(key)) {
+            return 0;
+        }
+
+        return getMaterialScores(itemStack).getOrDefault(key, 0);
     }
 }

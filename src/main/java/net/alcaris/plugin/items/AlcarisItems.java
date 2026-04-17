@@ -7,9 +7,6 @@ import net.alcaris.plugin.items.converters.*;
 import net.alcaris.plugin.items.listeners.InventoryUpdateListener;
 import net.alcaris.plugin.items.lib.InventoryUpdater;
 import net.alcaris.plugin.items.lib.ItemsRepository;
-import net.alcaris.plugin.items.listeners.MagicListener;
-import net.alcaris.plugin.items.magic.MagicRepository;
-import net.alcaris.plugin.items.magic.MagicService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.NamespacedKey;
@@ -31,8 +28,6 @@ public final class AlcarisItems extends JavaPlugin {
     private static AlcarisItems instance;
     private static ItemsRepository repository;
     private static ItemConverter itemConverter;
-
-    private MagicService magicService;
 
     @Override
     public void onEnable() {
@@ -56,13 +51,6 @@ public final class AlcarisItems extends JavaPlugin {
         Objects.requireNonNull(this.getCommand("custom-item")).setExecutor(
                 new CustomItemCommand(this, weaponItemConverter, armorItemConverter)
         );
-
-        MagicRepository magicRepository = new MagicRepository(this);
-        magicRepository.load();
-        this.magicService = new MagicService(this, magicRepository);
-        getServer().getPluginManager().registerEvents(new MagicListener(this, magicService), this);
-        Objects.requireNonNull(this.getCommand("magic")).setExecutor(new net.alcaris.plugin.items.commands.MagicCommand(magicRepository, magicService));
-        Objects.requireNonNull(this.getCommand("magic")).setTabCompleter(new net.alcaris.plugin.items.commands.MagicCommand(magicRepository, magicService));
     }
 
     public static Gson getGson() {
@@ -87,9 +75,5 @@ public final class AlcarisItems extends JavaPlugin {
 
     public static ItemConverter getItemConverter() {
         return itemConverter;
-    }
-
-    public MagicService getMagicService() {
-        return magicService;
     }
 }

@@ -26,6 +26,7 @@ repositories {
 dependencies {
     compileOnly "io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT"
     compileOnly "net.alcaris:AlcarisCore:1.2.7"
+    compileOnly files("libs/AlcarisCore-1.0.0-SNAPSHOT.jar")
 }
 
 def targetJavaVersion = 21
