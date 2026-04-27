@@ -6,7 +6,6 @@
 ## Dependencies
 
 - [**AlcarisCore**](https://github.com/AlcarisMinecraftServer/AlcarisCore)
-- [**AlcarisPlayer**](https://github.com/AlcarisMinecraftServer/AlcarisPlayer)
 
 ## Usage
 
